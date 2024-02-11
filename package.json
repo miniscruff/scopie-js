@@ -1,0 +1,19 @@
+{
+  "name": "scopie",
+  "version": "0.1.0",
+  "description": "Scope based authorization engine",
+  "main": "index.js",
+  "scripts": {
+    "dist": "echo not yet",
+    "test": "node src/index.spec.js"
+  },
+  "author": "miniscruff",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/miniscruff/scopie-js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/miniscruff/scopie-js/issues"
+  },
+  "license": "MIT"
+}
