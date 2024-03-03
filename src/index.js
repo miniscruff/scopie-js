@@ -28,10 +28,7 @@
     const arraySeperator = '|';
     const blockSeperator = '/';
     const wildcard = '*';
-    const superWildcard = '**';
     const varPrefix = '@';
-
-    const invalidRegex = /[^\w\d\/@|*]/;
 
     /**
      * Does thing
@@ -40,112 +37,272 @@
      * @param {string} actorScopes
      */
     function isAllowed(vars, requiredScopes, actorScopes) {
-      // console.log("vars", vars)
-      // console.log("req", requiredScopes)
-      // console.log("actor", actorScopes)
+      let varMap;
+      if (vars) {
+        varMap = new Map(Object.entries(vars));
+      }
 
       if (requiredScopes === "") {
-        throw new Error(`scopie-106 in scopes@0: scope was empty`)
+        throw `scopie-106 in scopes@0: scope was empty`
       }
 
       if (actorScopes === "") {
-        throw new Error(`scopie-106 in actor@0: scope was empty`)
+        throw `scopie-106 in actor@0: scope was empty`
       }
-
-      const reqInvalidIndex = requiredScopes.search(invalidRegex);
-      if (reqInvalidIndex >= 0) {
-        throw new Error(`scopie-100 in scopes@${reqInvalidIndex}: invalid character '${requiredScopes[reqInvalidIndex]}'`)
-      }
-
-      const actorInvalidIndex = actorScopes.search(invalidRegex);
-      if (actorInvalidIndex >= 0) {
-        throw new Error(`scopie-100 in actor@${actorInvalidIndex}: invalid character '${actorScopes[actorInvalidIndex]}'`)
-      }
-
-      const requireds = requiredScopes.split(scopeSeperator);
-      const actors = actorScopes.split(scopeSeperator);
 
       let hasBeenAllowed = false;
+      let actorIndex = 0;
+      let actorLeft = 0;
 
-      for (const act of actors) {
-        const actBlocks = act.split(blockSeperator).splice(1);
-        const isAllowBlock = act.startsWith('allow');
-
+      for (; actorLeft < actorScopes.length;) {
+        let isAllowBlock = actorScopes[actorLeft] === 'a'
         if (isAllowBlock && hasBeenAllowed) {
-          continue;
+          actorLeft = jumpAfterSeperator(actorScopes, actorLeft, scopeSeperator)
+          continue
         }
 
-        for (const req of requireds) {
-          const reqBlocks = req.split(blockSeperator);
-          console.log(actBlocks, reqBlocks);
+        actorLeft = jumpAfterSeperator(actorScopes, actorLeft, blockSeperator)
+        actorIndex = actorLeft
+        let ruleLeft = 0
 
-          if (arrayEq(vars, actBlocks, reqBlocks)) {
-            if (!isAllowBlock) {
-              return false;
+        for (; ruleLeft < requiredScopes.length;) {
+          const comp = compareFrom(actorScopes, actorLeft, requiredScopes, ruleLeft, varMap)
+          if (comp.match) {
+            actorLeft = comp.a
+            ruleLeft = comp.b
+
+            const endOfActor = actorLeft >= actorScopes.length || actorScopes[actorLeft - 1] === scopeSeperator;
+            const endOfRequired = ruleLeft >= requiredScopes.length || requiredScopes[ruleLeft - 1] === scopeSeperator;
+
+            // if we are at the end of the actor and of the required scope
+            if (endOfActor && endOfRequired) {
+              if (isAllowBlock) {
+                hasBeenAllowed = true
+                actorLeft = jumpAfterSeperator(actorScopes, actorLeft, scopeSeperator)
+              } else {
+                return false
+              }
+
+              break
+            } else if (endOfActor !== endOfRequired) {
+              break
             }
-            hasBeenAllowed = true;
+          } else {
+            ruleLeft = jumpAfterSeperator(requiredScopes, ruleLeft, scopeSeperator)
+            actorLeft = actorIndex
           }
         }
+
+        actorLeft = jumpAfterSeperator(actorScopes, actorLeft, scopeSeperator)
       }
 
       return hasBeenAllowed;
     }
 
-    function arrayEq(vars, a, b) {
-      if (a.length !== b.length && a[a.length - 1] !== superWildcard) {
-        return false;
-      }
+    /**
+      * @typedef {Object} CompareFrom
+      * @property {int} a - next a index
+      * @property {int} b - next b index
+      * @property {bool} match - whether or noti there was a match
+      */
 
-      for (let i in a) {
-        // console.log(a[i], b[i]);
-        if (a[i].indexOf(arraySeperator) >= 0) {
-          const invalidVarIndex = a[i].indexOf(varPrefix);
-          if (invalidVarIndex >= 0) {
-            let groupNameEnd = a[i].substring(invalidVarIndex + 1).search(/[/,|]/);
-            console.log("group name end", groupNameEnd)
-            console.log("extra:", a[i].substring(invalidVarIndex + 1));
-            if (groupNameEnd <= 0) {
-              groupNameEnd = undefined;
-            } else {
-              groupNameEnd += invalidVarIndex + 1
-            }
-            throw new Error(`scopie-101 in actor@${invalidVarIndex}: variable '${a[i].substring(invalidVarIndex + 1, groupNameEnd)}' found in array block`)
-          }
-
-          let matched = false;
-          for (let arrValue of a[i].split(arraySeperator)) {
-            // console.log("array comparison: ", arrValue, b[i]);
-            if (arrValue === b[i]) {
-              matched = true;
-              break;
-            }
-          }
-          if (!matched) {
-            return false;
-          }
-          continue
+    /**
+     * @param {string} aValue
+     * @param {int} aIndex
+     * @param {string} bValue
+     * @param {int} bIndex
+     * @param {Map<string,string>} vars
+     * @returns {CompareFrom} Comparison result
+     */
+    function compareFrom(
+      aValue, aIndex, bValue, bIndex, vars,
+    ) {
+      // Super wildcard is just two wildcards
+      if (aValue[aIndex] === wildcard && aIndex < aValue.length - 1 && aValue[aIndex + 1] === wildcard) {
+        if (aIndex + 2 < aValue.length && aValue[aIndex + 2] != scopeSeperator) {
+          throw `scopie-105 in actor@${aIndex}: super wildcard not in the last block`
         }
 
-        if (a[i] === superWildcard) {
-          return true;
-        }
-
-        if (a[i] === wildcard) {
-          continue;
-        }
-
-        if (a[i].startsWith(varPrefix)) {
-          const key = a[i].slice(1);
-          // console.log("found var", key, vars[key], b[i])
-          if (vars[key] !== b[i]) {
-            return false;
-          }
-        } else if (a[i] !== b[i]) {
-          return false;
+        return {
+          a: jumpAfterSeperator(aValue, aIndex, scopeSeperator),
+          b: jumpAfterSeperator(bValue, bIndex, scopeSeperator),
+          match: true,
         }
       }
 
-      return true;
+      if (aValue[aIndex] === wildcard) {
+        return {
+          a: jumpAfterSeperator(aValue, aIndex, blockSeperator),
+          b: jumpAfterSeperator(bValue, bIndex, blockSeperator),
+          match: true,
+        }
+      }
+
+      let bSlider = bIndex;
+      for (; bSlider < bValue.length; bSlider++) {
+        if (bValue[bSlider] === blockSeperator || bValue[bSlider] === scopeSeperator) {
+          break
+        } else if (!isValidCharacter(bValue[bSlider])) {
+          throw `scopie-100 in scopes@${bSlider}: invalid character '${bValue[bSlider]}'`
+        }
+      }
+
+      let aLeft = aIndex;
+      let aSlider = aIndex;
+      let wasArray = false;
+
+      for (; aSlider < aValue.length; aSlider++) {
+        if (aValue[aSlider] === blockSeperator || aValue[aSlider] === scopeSeperator) {
+          if (compareChunk(aValue, aLeft, aSlider, bValue, bIndex, bSlider, vars)) {
+            return {
+              a: aSlider + 1,
+              b: bSlider + 1,
+              match: true,
+            }
+          }
+
+          return {
+            a: aIndex,
+            b: bIndex,
+            match: false,
+          }
+        } else if (aValue[aSlider] === arraySeperator) {
+          wasArray = true
+
+          if (aValue[aLeft] === varPrefix) {
+            throw `scopie-101 in actor@${aLeft}: variable '${aValue.substring(aLeft+1, aSlider)}' found in array block`
+          }
+
+          if (aValue[aLeft] === wildcard) {
+            if (aLeft < aValue.length - 1 && aValue[aLeft + 1] === wildcard) {
+              throw `scopie-103 in actor@${aLeft}: super wildcard found in array block`
+            }
+
+            throw `scopie-102 in actor@${aLeft}: wildcard found in array block`
+          }
+
+          if (compareChunk(aValue, aLeft, aSlider, bValue, bIndex, bSlider, undefined)) {
+            return {
+              a: jumpBlockOrScopeSeperator(aValue, aSlider),
+              b: bSlider + 1,
+              match: true,
+            }
+          }
+
+          // go to the next array value
+          aLeft = aSlider + 1
+          aSlider += 1
+        } else if (!isValidCharacter(aValue[aSlider])) {
+          throw `scopie-100 in actor@${aSlider}: invalid character '${aValue[aSlider]}'`
+        }
+      }
+
+      if (wasArray) {
+        if (aValue[aLeft] === varPrefix) {
+          throw `scopie-101 in actor@${aLeft}: variable '${aValue.substring(aLeft+1, aSlider)}' found in array block`
+        }
+
+        if (aValue[aLeft] === wildcard) {
+          if (aLeft < aValue.length - 1 && aValue[aLeft + 1] === wildcard) {
+            throw `scopie-103 in actor@${aLeft}: super wildcard found in array block`
+          }
+
+          throw `scopie-102 in actor@${aLeft}: wildcard found in array block`
+        }
+      }
+
+      if (compareChunk(aValue, aLeft, aSlider, bValue, bIndex, bSlider, vars)) {
+        return {
+          a: aSlider + 1,
+          b: bSlider + 1,
+          match: true,
+        }
+      }
+
+      return {
+        a: aIndex,
+        b: bIndex,
+        match: false,
+      }
+    }
+
+    /**
+     * @param {string} aValue
+     * @param {int} aLeft
+     * @param {int} aSlider
+     * @param {string} bValue
+     * @param {int} bLeft
+     * @param {int} bSlider
+     * @param {Map<string,string>} vars
+     */
+    function compareChunk(
+      aValue, aLeft, aSlider,
+      bValue, bLeft, bSlider,
+      vars,
+    ) {
+      if (aValue[aLeft] === varPrefix) {
+        const key = aValue.substring(aLeft + 1, aSlider)
+        if (!vars.has(key)) {
+          throw `scopie-104 in actor@${aLeft}: variable '${key}' not found`
+        }
+
+        const varValue = vars.get(key)
+        return varValue === bValue.substring(bLeft, bSlider)
+      }
+
+      if (aSlider - aLeft != bSlider - bLeft) {
+        return false
+      }
+
+      return aValue.substring(aLeft, aSlider) === bValue.substring(bLeft, bSlider)
+    }
+
+    function jumpAfterSeperator(value, start, sep) {
+      for (let i = start + 1; i < value.length; i++) {
+        if (value[i] === sep) {
+          return i + 1
+        }
+      }
+
+      return value.length
+    }
+
+    function jumpBlockOrScopeSeperator(value, start) {
+      for (let i = start + 1; i < value.length; i++) {
+        if (value[i] === blockSeperator || value[i] === scopeSeperator) {
+          return i + 1
+        }
+      }
+
+      return value.length
+    }
+
+    function jumpEndOfArrayElement(value, start) {
+      for (let i = start + 1; i < value.length; i++) {
+        if (value[i] === blockSeperator ||
+          value[i] === scopeSeperator ||
+          value[i] === arraySeperator) {
+          return i
+        }
+      }
+
+      return value.length
+    }
+
+    function isValidCharacter(char) {
+      if (char >= 'a' && char <= 'z') {
+        return true
+      }
+
+      if (char >= 'A' && char <= 'Z') {
+        return true
+      }
+
+      if (char >= '0' && char <= '9') {
+        return true
+      }
+
+      return char === '_' || char === '-' || char === varPrefix || char === wildcard
     }
 
     return scopie;

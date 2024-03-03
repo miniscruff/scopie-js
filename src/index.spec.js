@@ -7,20 +7,26 @@ function testIsAllowed() {
     // console.log("-- starting test:", tc.id)
     try {
       const res = isAllowed(tc.variables, tc.scopes, tc.actor);
+      console.log("the result:", res)
       if (tc.error !== undefined) {
+        tc.assert = `expected error but got none`;
         console.table(tc);
-        console.error(`## ${tc.id} failed: expected error but got none`);
+        break
       } else if (res !== tc.result) {
+        tc.assert = `${res} !== ${tc.result}`;
         console.table(tc);
-        console.error(`## ${tc.id} failed: ${res} !== ${tc.result}`);
+        break
       }
     } catch (e) {
       if (tc.error === undefined) {
+        tc.assert = `expected no error but got one`;
+        console.log(e)
         console.table(tc);
-        console.error(`## ${tc.id} failed: expected no error but got one: ${e}`);
-      } else if (e.message !== tc.error) {
+        break
+      } else if (e !== tc.error) {
+        tc.assert = `${e} !== ${tc.error}`;
         console.table(tc);
-        console.error(`## ${tc.id} failed: ${e} !== ${tc.error}`);
+        break
       }
     }
     // console.log("-- ending test:", tc.id)
