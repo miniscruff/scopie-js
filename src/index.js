@@ -277,18 +277,6 @@
       return value.length
     }
 
-    function jumpEndOfArrayElement(value, start) {
-      for (let i = start + 1; i < value.length; i++) {
-        if (value[i] === blockSeperator ||
-          value[i] === scopeSeperator ||
-          value[i] === arraySeperator) {
-          return i
-        }
-      }
-
-      return value.length
-    }
-
     function isValidCharacter(char) {
       if (char >= 'a' && char <= 'z') {
         return true

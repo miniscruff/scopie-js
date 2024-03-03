@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dist": "echo not yet",
-    "test": "node src/index.spec.js"
+    "test": "jest",
+    "bench": "node src/index.bench.js"
   },
   "author": "miniscruff",
   "repository": {
@@ -15,5 +16,9 @@
   "bugs": {
     "url": "https://github.com/miniscruff/scopie-js/issues"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "29.7.0",
+    "tinybench": "2.6.0"
+  }
 }
