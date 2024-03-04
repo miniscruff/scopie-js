@@ -3,9 +3,8 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Scope based authorization engine",
-  "main": "index.js",
   "scripts": {
-    "build": "esbuild src/index.js --target=es2020 --bundle --minify --outfile=dist/scopie.min.js",
+    "build": "node build.js",
     "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest",
     "bench": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" node src/index.bench.js"
   },
@@ -17,6 +16,16 @@
   "bugs": {
     "url": "https://github.com/miniscruff/scopie-js/issues"
   },
+  "main": "./dist/scopie.min.cjs",
+  "module": "./dist/scopie.min.js",
+  "exports": {
+    "import": "./dist/scopie.js",
+    "require": "./dist/scopie.min.cjs",
+    "default": "./dist/scopie.min.cjs"
+  },
+  "files": [
+    "dist/**"
+  ],
   "license": "MIT",
   "devDependencies": {
     "esbuild": "0.20.1",

@@ -10,15 +10,11 @@ const bench = new Bench({
 
 for (let tc of scenarios.benchmarks) {
   bench.add(tc.id, () => {
-      isAllowed(tc.variables, tc.scopes, tc.actor)
+    isAllowed(tc.variables, tc.scopes, tc.actor)
   })
 }
 
-async function run() {
-  await bench.warmup();
-  await bench.run();
+await bench.warmup();
+await bench.run();
 
-  console.table(bench.table());
-}
-
-run();
+console.table(bench.table());
