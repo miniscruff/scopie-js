@@ -1,4 +1,6 @@
+/* eslint-disable-next-line */
 import scenarios from './scopie_scenarios.json' with { type: "json" };
+
 import { isAllowed } from './index.js';
 import { Bench } from 'tinybench';
 
