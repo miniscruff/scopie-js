@@ -1,9 +1,8 @@
-const scenarios = require('./scopie_scenarios.json');
-const scopie = require('./index.js')
-const { isAllowed } = scopie;
+import scenarios from './scopie_scenarios.json' with { type: "json" };
+import { isAllowed } from './index.js';
+import { Bench } from 'tinybench';
 
-const Bench = require('tinybench');
-const bench = new Bench.Bench({
+const bench = new Bench({
   time: 500,
   iterations: 10000,
   warmupTime: 1,

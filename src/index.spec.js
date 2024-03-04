@@ -1,7 +1,5 @@
-import scenarios from './scopie_scenarios.json'; //= require('./scopie_scenarios.json');
+import scenarios from './scopie_scenarios.json';
 import { isAllowed, validateScope } from '.';
-
-console.log(scenarios)
 
 describe('is allowed', () => {
   for (let tc of scenarios.isAllowedTests) {

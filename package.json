@@ -7,7 +7,7 @@
   "scripts": {
     "build": "esbuild src/index.js --target=es2020 --bundle --minify --outfile=dist/scopie.min.js",
     "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest",
-    "bench": "node src/index.bench.js"
+    "bench": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" node src/index.bench.js"
   },
   "author": "miniscruff",
   "repository": {
