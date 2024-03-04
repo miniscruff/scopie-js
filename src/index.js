@@ -76,6 +76,54 @@ export function isAllowed(vars, requiredScopes, actorScopes) {
 }
 
 /**
+ * TODO
+ * @param {string} scope
+ */
+export function validateScope(scope) {
+  if (scope === "") {
+    return new Error(`scopie-106@0: scope was empty`);
+  }
+
+  let inArray = false;
+
+  for (let i = 0; i < scope.length; i++) {
+    if (scope[i] === blockSeperator) {
+      inArray = false
+      continue
+    }
+
+    if (scope[i] === arraySeperator) {
+      inArray = true
+      continue
+    }
+
+    if (inArray) {
+      if (scope[i] === wildcard && i < scope.length - 1 && scope[i + 1] === wildcard) {
+        return new Error(`scopie-103@${i}: super wildcard found in array block`)
+      }
+
+      if (scope[i] === wildcard) {
+        return new Error(`scopie-102@${i}: wildcard found in array block`)
+      }
+
+      if (scope[i] === varPrefix) {
+        const end = jumpEndOfArrayElement(scope, i);
+        return new Error(`scopie-101@${i}: variable '${scope.substring(i+1, end)}' found in array block`)
+      }
+    }
+
+    if (!isValidCharacter(scope[i])) {
+      return new Error(`scopie-100@${i}: invalid character '${scope[i]}'`)
+    }
+
+    if (scope[i] === wildcard && i < scope.length - 1 && scope[i + 1] === wildcard &&
+      i < scope.length - 2 && scope[i + 2] != scopeSeperator) {
+      return new Error(`scopie-105@${i}: super wildcard not in the last block`);
+    }
+  }
+}
+
+/**
   * @typedef {Object} CompareFrom
   * @property {int} a - next a index
   * @property {int} b - next b index
@@ -231,6 +279,18 @@ function compareChunk(
   }
 
   return aValue.substring(aLeft, aSlider) === bValue.substring(bLeft, bSlider)
+}
+
+function jumpEndOfArrayElement(value, start) {
+  for (let i = start + 1; i < value.length; i++) {
+    if (value[i] == blockSeperator ||
+      value[i] == scopeSeperator ||
+      value[i] == arraySeperator) {
+      return i
+    }
+  }
+
+  return value.length
 }
 
 function jumpAfterSeperator(value, start, sep) {

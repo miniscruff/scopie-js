@@ -1,6 +1,7 @@
-const scenarios = require('./scopie_scenarios.json');
-const scopie = require('./index.js')
-const { isAllowed } = scopie;
+import scenarios from './scopie_scenarios.json'; //= require('./scopie_scenarios.json');
+import { isAllowed, validateScope } from '.';
+
+console.log(scenarios)
 
 describe('is allowed', () => {
   for (let tc of scenarios.isAllowedTests) {
@@ -15,12 +16,15 @@ describe('is allowed', () => {
   }
 })
 
-/* TODO: Is valid scope tests
-describe('other', () => {
+describe('is valid', () => {
   for (let tc of scenarios.scopeValidTests) {
     test(tc.id, () => {
-      expect(isVa
+      const err = validateScope(tc.scope)
+      if (tc.error === undefined) {
+        expect(err).toBe(undefined)
+      } else {
+        expect(err.message).toEqual(tc.error)
+      }
     })
   }
 })
-*/
