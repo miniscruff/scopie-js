@@ -17,5 +17,17 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - run: npm publish
         env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+          NODE_AUTH_TOKEN: ${{ secrets.npm_token }}
 
+      - name: Get the latest version
+        id: latest
+        uses: miniscruff/changie-action@v2
+        with:
+          version: latest
+          args: latest
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          body_path: ".changes/${{ steps.latest.outputs.output }}.md"
+          tag_name: "${{ steps.latest.outputs.output }}"

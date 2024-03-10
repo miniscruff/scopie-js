@@ -28,3 +28,7 @@ custom:
 - key: Issue
   type: int
   minInt: 1
+replacements:
+- path: package.json
+  find: '  "version": ".*",'
+  replace: '  "version": "{{.VersionNoPrefix}}",'
