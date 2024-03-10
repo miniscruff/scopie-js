@@ -3,7 +3,7 @@ name: release
 on:
   push:
     branches: [ main ]
-    paths: [ CHANGELOG.md ]
+      # paths: [ CHANGELOG.md ]
 
 jobs:
   build:
@@ -15,9 +15,11 @@ jobs:
         with:
           node-version: '20.x'
           registry-url: 'https://registry.npmjs.org'
-      - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.npm_token }}
+
+            # just try tagging
+            # - run: npm publish
+            # env:
+            # NODE_AUTH_TOKEN: ${{ secrets.npm_token }}
 
       - name: Get the latest version
         id: latest
@@ -27,7 +29,8 @@ jobs:
           args: latest
 
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           body_path: ".changes/${{ steps.latest.outputs.output }}.md"
           tag_name: "${{ steps.latest.outputs.output }}"
+          files: dist/*
