@@ -15,6 +15,10 @@ jobs:
         node-version: '20.x'
         registry-url: 'https://registry.npmjs.org'
 
+    - name: Run benchmark and push
+      run: |
+        npm run build
+
     - name: Batch changes
       uses: miniscruff/changie-action@v2
       with:
