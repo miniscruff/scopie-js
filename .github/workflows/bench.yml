@@ -1,0 +1,28 @@
+name: benchmark
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-20.04
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Node
+      with:
+        node-version: 20.x
+
+    - name: Run benchmark and push
+      run: |
+        npm run bench > BENCHMARKS.txt
+        git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add BENCHMARKS.txt
+        git commit -m "Update benchmarks"
+        git push
