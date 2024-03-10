@@ -1,0 +1,40 @@
+{
+  "name": "scopie",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Scope based authorization engine",
+  "scripts": {
+    "lint": "eslint ./src",
+    "build": "node build.js",
+    "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest",
+    "bench": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" node src/index.bench.js"
+  },
+  "author": "miniscruff",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/miniscruff/scopie-js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/miniscruff/scopie-js/issues"
+  },
+  "main": "./dist/scopie.min.cjs",
+  "module": "./dist/scopie.min.js",
+  "exports": {
+    "import": "./dist/scopie.js",
+    "require": "./dist/scopie.min.cjs",
+    "default": "./dist/scopie.min.cjs"
+  },
+  "files": [
+    "dist/**"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "esbuild": "0.20.1",
+    "eslint": "8.57.0",
+    "eslint-config-airbnb-base": "15.0.0",
+    "eslint-plugin-import": "2.29.1",
+    "eslint-plugin-jest": "27.9.0",
+    "jest": "29.7.0",
+    "tinybench": "2.6.0"
+  }
+}
