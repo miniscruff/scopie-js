@@ -7,42 +7,43 @@ jobs:
   generate-pr:
     runs-on: ubuntu-20.04
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    - name: Setup NPM
-      uses: actions/setup-node@v3
-      with:
-        node-version: '20.x'
-        registry-url: 'https://registry.npmjs.org'
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Run benchmark and push
-      run: |
-        npm run build
+      - name: Setup NPM
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+          registry-url: 'https://registry.npmjs.org'
 
-    - name: Batch changes
-      uses: miniscruff/changie-action@v2
-      with:
-        version: latest
-        args: batch auto
+      - name: Run builds
+        run: |
+          npm run build
 
-    - name: Merge PR
-      uses: miniscruff/changie-action@v2
-      with:
-        version: latest
-        args: merge
+      - name: Batch changes
+        uses: miniscruff/changie-action@v2
+        with:
+          version: latest
+          args: batch auto
 
-    - name: Merge PR
-      id: latest
-      uses: miniscruff/changie-action@v2
-      with:
-        version: latest
-        args: latest
+      - name: Merge PR
+        uses: miniscruff/changie-action@v2
+        with:
+          version: latest
+          args: merge
 
-    - name: Create Pull Request
-      uses: peter-evans/create-pull-request@v6
-      with:
-        title: Release ${{ steps.latest.outputs.output }}
-        branch: release/${{ steps.latest.outputs.output }}
-        commit-message: Release ${{ steps.latest.outputs.output }}
-        body_path: ".changes/${{ steps.latest.outputs.output }}.md"
-        tag_name: "${{ steps.latest.outputs.output }}"
+      - name: Merge PR
+        id: latest
+        uses: miniscruff/changie-action@v2
+        with:
+          version: latest
+          args: latest
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          title: Release ${{ steps.latest.outputs.output }}
+          branch: release/${{ steps.latest.outputs.output }}
+          commit-message: Release ${{ steps.latest.outputs.output }}
+          body_path: ".changes/${{ steps.latest.outputs.output }}.md"
+          tag_name: "${{ steps.latest.outputs.output }}"

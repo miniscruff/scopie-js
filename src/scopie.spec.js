@@ -1,6 +1,6 @@
 /* eslint-disable jest/no-conditional-expect, jest/no-conditional-in-test */
 import scenarios from './scopie_scenarios.json';
-import { isAllowed, validateScope } from '.';
+import { isAllowed, validateScope } from './scopie.js';
 
 describe('is allowed', () => {
   it.each(scenarios.isAllowedTests)(

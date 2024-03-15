@@ -54,7 +54,7 @@ function jumpBlockOrScopeSeperator(value, start) {
   return value.length;
 }
 
-/**
+/** Compares two strings with respect to variables and wildcards.
  * @param {string} aValue
  * @param {int} aLeft
  * @param {int} aSlider
@@ -208,10 +208,10 @@ function compareFrom(aValue, aIndex, bValue, bIndex, vars) {
 }
 
 /**
- * TODO
- * @param {object} vars
- * @param {string} requiredScopes
- * @param {string} actorScopes
+ * Validate if our actor is allowed to perform the action based on the required scope.
+ * @param {object} vars - User variables that are replacable in scopes
+ * @param {string} requiredScopes - Required actor scopes
+ * @param {string} actorScopes - What scopes our actor has
  */
 export function isAllowed(vars, requiredScopes, actorScopes) {
   let varMap;

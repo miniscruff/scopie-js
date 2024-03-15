@@ -1,7 +1,7 @@
 import { build } from 'esbuild';
 
 build({
-  entryPoints: ['./src/index.js'],
+  entryPoints: ['./src/scopie.js'],
   bundle: true,
   minify: true,
   platform: 'node',
@@ -11,7 +11,7 @@ build({
 })
 
 build({
-  entryPoints: ['./src/index.js'],
+  entryPoints: ['./src/scopie.js'],
   bundle: true,
   minify: false,
   platform: 'node',
@@ -19,3 +19,12 @@ build({
   target: 'es2020',
 })
 
+
+build({
+  entryPoints: ['./src/scopie.js'],
+  bundle: true,
+  minify: true,
+  platform: 'node',
+  outfile: 'dist/scopie.min.js',
+  target: 'es2020',
+})

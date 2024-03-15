@@ -1,7 +1,7 @@
 name: release
 
 permissions:
-      contents: write
+  contents: write
 
 on:
   push:
@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - name: Setup NPM
         uses: actions/setup-node@v3
         with:
