@@ -1,5 +1,3 @@
-export const version = '0.1.0';
-
 export const scopeSeperator = ',';
 export const arraySeperator = '|';
 export const blockSeperator = '/';

@@ -19,7 +19,6 @@ build({
   target: 'es2020',
 })
 
-
 build({
   entryPoints: ['./src/scopie.js'],
   bundle: true,
