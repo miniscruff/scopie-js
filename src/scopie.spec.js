@@ -6,13 +6,14 @@ describe('is allowed', () => {
   it.each(scenarios.isAllowedTests)(
     '$id',
     ({
-      id, variables, scopes, actor, error, result, /* eslint-disable-line no-unused-vars */
+      id, actorRules, actionScopes, variables, error, result, /* eslint-disable-line no-unused-vars */
     }) => {
       expect.assertions(1);
-      const testFn = () => isAllowed(variables, scopes, actor);
+      const testFn = () => isAllowed(actorRules, actionScopes, variables);
       if (error === undefined) {
         expect(testFn()).toBe(result);
       } else {
+        console.log(id, actorRules, actionScopes)
         expect(testFn).toThrow(error);
       }
     },
