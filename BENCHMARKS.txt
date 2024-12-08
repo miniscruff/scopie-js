@@ -1,27 +1,27 @@
 
-> scopie@0.0.1 bench
-> NODE_OPTIONS="$NODE_OPTIONS --experimental-vm-modules" node src/index.bench.js
+> scopie@0.1.0 bench
+> NODE_OPTIONS="$NODE_OPTIONS --experimental-vm-modules" node src/scopie.bench.js
 
 ┌─────────┬────────────────────────────────────────────────────────┬─────────────┬────────────────────┬──────────┬─────────┐
 │ (index) │ Task Name                                              │ ops/sec     │ Average Time (ns)  │ Margin   │ Samples │
 ├─────────┼────────────────────────────────────────────────────────┼─────────────┼────────────────────┼──────────┼─────────┤
-│ 0       │ 'allow,1actor,1rule,1block1length'                     │ '7,794,216' │ 128.30026437582882 │ '±0.55%' │ 3897109 │
-│ 1       │ 'deny,1actor,1rule,1block1length'                      │ '8,810,027' │ 113.5070190468773  │ '±0.49%' │ 4405014 │
-│ 2       │ 'allow,5actor,3scopes,3blocks10length,best'            │ '950,081'   │ 1052.5415379238414 │ '±0.58%' │ 475433  │
-│ 3       │ 'allow,5actor,3scopes,3blocks10length,worst'           │ '232,435'   │ 4302.2721265217415 │ '±0.68%' │ 116218  │
-│ 4       │ 'deny,5actor,3scopes,3blocks10length,best'             │ '1,604,191' │ 623.367149318536   │ '±1.41%' │ 802096  │
-│ 5       │ 'deny,5actor,3scopes,3blocks10length,worst'            │ '233,129'   │ 4289.461673743173  │ '±0.73%' │ 116565  │
-│ 6       │ 'allow,2actor,1rule,3block5length,3array,best'         │ '1,347,286' │ 742.2324848139646  │ '±0.53%' │ 673644  │
-│ 7       │ 'allow,2actor,1rule,3block5length,3array,worst'        │ '849,176'   │ 1177.6109249179176 │ '±0.44%' │ 424589  │
-│ 8       │ 'deny,2actor,1rule,3block5length,3array,best'          │ '1,709,649' │ 584.9153569439521  │ '±0.18%' │ 854825  │
-│ 9       │ 'deny,2actor,1rule,3block5length,3array,worst'         │ '851,446'   │ 1174.471927821128  │ '±0.52%' │ 425724  │
-│ 10      │ 'allow,3actor,1rule,3block5length,3variables,best'     │ '902,705'   │ 1107.780772476735  │ '±0.54%' │ 451353  │
-│ 11      │ 'allow,3actor,1rule,3block5length,3variables,worst'    │ '695,145'   │ 1438.547766942277  │ '±0.55%' │ 347573  │
-│ 12      │ 'deny,2actor,1rule,3block5length,3variables,best'      │ '692,713'   │ 1443.5980563404669 │ '±0.57%' │ 346357  │
-│ 13      │ 'allow,3actor,1rule,3block5length,wildcard,best'       │ '2,141,005' │ 467.07018569753313 │ '±0.59%' │ 1070503 │
-│ 14      │ 'allow,3actor,1rule,3block5length,wildcard,worst'      │ '1,312,752' │ 761.7579394166015  │ '±0.67%' │ 656377  │
-│ 15      │ 'deny,2actor,1rule,3block5length,wildcard,best'        │ '1,300,772' │ 768.7741375505436  │ '±0.71%' │ 650387  │
-│ 16      │ 'allow,3actor,1rule,3block5length,superwildcard,best'  │ '2,637,119' │ 379.20156306788414 │ '±0.62%' │ 1318560 │
-│ 17      │ 'allow,3actor,1rule,3block5length,superwildcard,worst' │ '1,477,448' │ 676.8426112555743  │ '±0.81%' │ 738725  │
-│ 18      │ 'deny,2actor,1rule,3block5length,superwildcard,best'   │ '1,491,118' │ 670.6374617725775  │ '±0.39%' │ 745560  │
+│ 0       │ 'allow,1actor,1rule,1block1length'                     │ '6,251,049' │ 159.9731405117638  │ '±0.24%' │ 3125525 │
+│ 1       │ 'deny,1actor,1rule,1block1length'                      │ '6,951,596' │ 143.851843274022   │ '±0.26%' │ 3475799 │
+│ 2       │ 'allow,5actor,3scopes,3blocks10length,best'            │ '992,667'   │ 1007.3863688565461 │ '±0.34%' │ 496334  │
+│ 3       │ 'allow,5actor,3scopes,3blocks10length,worst'           │ '298,699'   │ 3347.8459122862705 │ '±0.44%' │ 149350  │
+│ 4       │ 'deny,5actor,3scopes,3blocks10length,best'             │ '1,702,526' │ 587.3622648203043  │ '±0.45%' │ 851264  │
+│ 5       │ 'deny,5actor,3scopes,3blocks10length,worst'            │ '298,294'   │ 3352.391543969403  │ '±0.39%' │ 149148  │
+│ 6       │ 'allow,2actor,1rule,3block5length,3array,best'         │ '1,510,363' │ 662.0920837621114  │ '±1.47%' │ 755182  │
+│ 7       │ 'allow,2actor,1rule,3block5length,3array,worst'        │ '807,441'   │ 1238.4795316566338 │ '±0.26%' │ 403721  │
+│ 8       │ 'deny,2actor,1rule,3block5length,3array,best'          │ '1,569,568' │ 637.1178870645462  │ '±0.24%' │ 784785  │
+│ 9       │ 'deny,2actor,1rule,3block5length,3array,worst'         │ '828,867'   │ 1206.4658449830267 │ '±0.31%' │ 414434  │
+│ 10      │ 'allow,3actor,1rule,3block5length,3variables,best'     │ '1,098,159' │ 910.6146372114613  │ '±0.30%' │ 549080  │
+│ 11      │ 'allow,3actor,1rule,3block5length,3variables,worst'    │ '819,010'   │ 1220.9860783462746 │ '±0.39%' │ 409506  │
+│ 12      │ 'deny,2actor,1rule,3block5length,3variables,best'      │ '825,801'   │ 1210.9444661059126 │ '±0.34%' │ 412901  │
+│ 13      │ 'allow,3actor,1rule,3block5length,wildcard,best'       │ '2,652,786' │ 376.9621077895319  │ '±0.43%' │ 1326394 │
+│ 14      │ 'allow,3actor,1rule,3block5length,wildcard,worst'      │ '1,484,679' │ 673.5462362257903  │ '±0.38%' │ 742340  │
+│ 15      │ 'deny,2actor,1rule,3block5length,wildcard,best'        │ '1,466,475' │ 681.9072934026786  │ '±0.47%' │ 733238  │
+│ 16      │ 'allow,3actor,1rule,3block5length,superwildcard,best'  │ '3,538,002' │ 282.6453944091815  │ '±0.69%' │ 1769002 │
+│ 17      │ 'allow,3actor,1rule,3block5length,superwildcard,worst' │ '1,773,031' │ 564.0058013620082  │ '±0.27%' │ 886516  │
+│ 18      │ 'deny,2actor,1rule,3block5length,superwildcard,best'   │ '1,745,864' │ 572.7820978250267  │ '±0.33%' │ 872933  │
 └─────────┴────────────────────────────────────────────────────────┴─────────────┴────────────────────┴──────────┴─────────┘
