@@ -1,4 +1,4 @@
-/* eslint-disable-next-line */
+// eslint-disable-next-line
 import scenarios from './scopie_scenarios.json' with { type: "json" };
 
 import { isAllowed } from './scopie.js';
