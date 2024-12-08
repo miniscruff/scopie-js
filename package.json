@@ -4,7 +4,7 @@
   "type": "module",
   "description": "Scope based authorization engine",
   "scripts": {
-    "lint": "eslint ./src",
+    "lint": "eslint src/scopie.js",
     "build": "rm -rf dist/ && tsc && node build.js && gzip -9 -k -f dist/scopie.min.js > dist/scopie.min.js.gz && gzip -9 -k -f dist/scopie.min.cjs > dist/scopie.min.cjs.gz",
     "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest",
     "bench": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" node src/scopie.bench.js"
@@ -30,11 +30,11 @@
   ],
   "license": "MIT",
   "devDependencies": {
+    "@eslint/js": "9.16.0",
     "esbuild": "0.24.0",
-    "eslint": "8.57.0",
-    "eslint-config-airbnb-base": "15.0.0",
     "eslint-plugin-import": "2.31.0",
     "eslint-plugin-jest": "27.9.0",
+    "globals": "15.13.0",
     "jest": "29.7.0",
     "tinybench": "2.6.0",
     "typescript": "5.7.2"
