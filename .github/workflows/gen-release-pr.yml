@@ -1,9 +1,5 @@
 name: Generate release pull request
 
-permissions:
-  contents: write
-  pull-requests: write
-
 on:
   workflow_dispatch:
 
@@ -13,6 +9,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT }}
 
       - name: Setup NPM
         uses: actions/setup-node@v4
