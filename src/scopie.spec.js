@@ -1,4 +1,4 @@
-/* eslint-disable jest/no-conditional-expect, jest/no-conditional-in-test */
+/* eslint-disable jest/no-conditional-expect, jest/no-conditional-in-test, no-unused-vars */
 import scenarios from './scopie_scenarios.json';
 import { isAllowed, validateScope } from './scopie';
 
@@ -6,14 +6,13 @@ describe('is allowed', () => {
   it.each(scenarios.isAllowedTests)(
     '$id',
     ({
-      id, actorRules, actionScopes, variables, error, result, /* eslint-disable-line no-unused-vars */
+      id, actorRules, actionScopes, variables, error, result,
     }) => {
       expect.assertions(1);
-      const testFn = () => isAllowed(actorRules, actionScopes, variables);
+      const testFn = () => isAllowed(actionScopes, actorRules, variables);
       if (error === undefined) {
         expect(testFn()).toBe(result);
       } else {
-        console.log(id, actorRules, actionScopes)
         expect(testFn).toThrow(error);
       }
     },
@@ -23,7 +22,7 @@ describe('is allowed', () => {
 describe('is valid', () => {
   it.each(scenarios.scopeValidTests)(
     '$id',
-    ({ id, scope, error }) => { /* eslint-disable-line no-unused-vars */
+    ({ id, scope, error }) => {
       expect.assertions(1);
       const err = validateScope(scope);
       if (error === undefined) {
