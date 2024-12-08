@@ -1,7 +1,7 @@
 # Scopie
 
-[![npm version](https://img.shields.io/npm/v/scopie.svg)](https://www.npmjs.com/package/scopie)
-[![Downloads](https://img.shields.io/npm/dm/scopie.svg)](https://www.npmjs.com/package/scopie)
+[![NPM Version](https://img.shields.io/npm/v/scopie.svg)](https://www.npmjs.com/package/scopie)
+[![NPM Downloads](https://img.shields.io/npm/dw/scopie)](https://www.npmjs.com/package/scopie)
 
 Javascript implementation of [scopie](https://github.com/miniscruff/scopie).
 
