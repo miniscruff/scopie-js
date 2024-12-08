@@ -16,7 +16,6 @@ for (let tc of scenarios.benchmarks) {
   })
 }
 
-await bench.warmup();
 await bench.run();
 
 console.table(bench.table());
