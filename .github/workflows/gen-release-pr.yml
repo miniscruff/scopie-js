@@ -17,6 +17,7 @@ jobs:
 
       - name: Run builds
         run: |
+          npm install
           npm run build
 
       - name: Batch changes
