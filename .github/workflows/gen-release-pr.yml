@@ -1,5 +1,8 @@
 name: Generate release pull request
 
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
 
@@ -26,13 +29,13 @@ jobs:
           version: latest
           args: batch auto
 
-      - name: Merge PR
+      - name: Merge
         uses: miniscruff/changie-action@v2
         with:
           version: latest
           args: merge
 
-      - name: Merge PR
+      - name: Latest
         id: latest
         uses: miniscruff/changie-action@v2
         with:
