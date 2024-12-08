@@ -16,20 +16,18 @@ var __copyProps = (to, from, except, desc) => {
 };
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// src/index.js
-var src_exports = {};
-__export(src_exports, {
+// src/scopie.js
+var scopie_exports = {};
+__export(scopie_exports, {
   arraySeperator: () => arraySeperator,
   blockSeperator: () => blockSeperator,
   isAllowed: () => isAllowed,
   scopeSeperator: () => scopeSeperator,
   validateScope: () => validateScope,
   varPrefix: () => varPrefix,
-  version: () => version,
   wildcard: () => wildcard
 });
-module.exports = __toCommonJS(src_exports);
-var version = "0.1.0";
+module.exports = __toCommonJS(scopie_exports);
 var scopeSeperator = ",";
 var arraySeperator = "|";
 var blockSeperator = "/";
@@ -270,6 +268,5 @@ function validateScope(scope) {
   scopeSeperator,
   validateScope,
   varPrefix,
-  version,
   wildcard
 });

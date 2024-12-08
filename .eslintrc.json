@@ -7,7 +7,7 @@
     "ecmaVersion": "latest",
     "sourceType": "module"
   },
-  "ignorePatterns": ["src/index.bench.js"],
+  "ignorePatterns": ["src/scopie.bench.js"],
   "plugins": ["jest"],
   "rules": {
     "no-continue": 0

@@ -1,4 +1,4 @@
-/* eslint-disable-next-line */
+// eslint-disable-next-line
 import scenarios from './scopie_scenarios.json' with { type: "json" };
 
 import { isAllowed } from './scopie.js';
@@ -12,7 +12,7 @@ const bench = new Bench({
 
 for (let tc of scenarios.benchmarks) {
   bench.add(tc.id, () => {
-    isAllowed(tc.variables, tc.scopes, tc.actor)
+    isAllowed(tc.actionScopes, tc.actorRules, tc.variables);
   })
 }
 
