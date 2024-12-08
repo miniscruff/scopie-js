@@ -2,6 +2,7 @@ name: Generate release pull request
 
 permissions:
   contents: write
+  pull-requests: write
 
 on:
   workflow_dispatch:
