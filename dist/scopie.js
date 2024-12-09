@@ -22,13 +22,11 @@ __export(scopie_exports, {
   arraySeperator: () => arraySeperator,
   blockSeperator: () => blockSeperator,
   isAllowed: () => isAllowed,
-  scopeSeperator: () => scopeSeperator,
   validateScope: () => validateScope,
   varPrefix: () => varPrefix,
   wildcard: () => wildcard
 });
 module.exports = __toCommonJS(scopie_exports);
-var scopeSeperator = ",";
 var arraySeperator = "|";
 var blockSeperator = "/";
 var wildcard = "*";
@@ -45,189 +43,133 @@ function isValidCharacter(char) {
   }
   return char === "_" || char === "-" || char === varPrefix || char === wildcard;
 }
-function jumpEndOfArrayElement(value, start) {
+function endOfArrayElement(value, start) {
   for (let i = start + 1; i < value.length; i += 1) {
-    if (value[i] === blockSeperator || value[i] === scopeSeperator || value[i] === arraySeperator) {
+    if (value[i] === blockSeperator || value[i] === arraySeperator) {
       return i;
     }
   }
   return value.length;
 }
-function jumpAfterSeperator(value, start, sep) {
-  for (let i = start + 1; i < value.length; i += 1) {
-    if (value[i] === sep) {
-      return i + 1;
+function endOfBlock(category, value, start) {
+  for (let i = start; i < value.length; i += 1) {
+    if (value[i] === blockSeperator) {
+      return i;
+    }
+    if (value[i] === arraySeperator) {
+      continue;
+    } else if (!isValidCharacter(value[i])) {
+      throw new Error(`scopie-100 in ${category}: invalid character '${value[i]}'`);
     }
   }
   return value.length;
 }
-function jumpBlockOrScopeSeperator(value, start) {
-  for (let i = start + 1; i < value.length; i += 1) {
-    if (value[i] === blockSeperator || value[i] === scopeSeperator) {
-      return i + 1;
-    }
-  }
-  return value.length;
-}
-function compareChunk(aValue, aLeft, aSlider, bValue, bLeft, bSlider, vars) {
-  if (aValue[aLeft] === varPrefix) {
-    const key = aValue.substring(aLeft + 1, aSlider);
+function compareBlock(aValue, aLeft, aSlider, bValue, bLeft, bSlider, vars) {
+  let actorLeft = aLeft;
+  if (aValue[actorLeft] === varPrefix) {
+    const key = aValue.substring(actorLeft + 1, aSlider);
     if (!vars.has(key)) {
-      throw new Error(`scopie-104 in actor@${aLeft}: variable '${key}' not found`);
+      throw new Error(`scopie-104 in actor: variable '${key}' not found`);
     }
     const varValue = vars.get(key);
     return varValue === bValue.substring(bLeft, bSlider);
   }
-  if (aSlider - aLeft !== bSlider - bLeft) {
+  if (aSlider - actorLeft === 1 && aValue[actorLeft] === wildcard) {
+    return true;
+  }
+  if (aValue.substring(actorLeft, aSlider).indexOf(arraySeperator) >= 0) {
+    for (; actorLeft < aSlider; ) {
+      const arrayRight = endOfArrayElement(aValue, actorLeft);
+      if (aValue[actorLeft] === varPrefix) {
+        throw new Error(`scopie-101 in actor: variable '${aValue.substring(actorLeft + 1, arrayRight)}' found in array block`);
+      }
+      if (aValue[actorLeft] === wildcard) {
+        if (arrayRight - actorLeft > 1 && aValue[actorLeft + 1] === wildcard) {
+          throw new Error("scopie-103 in actor: super wildcard found in array block");
+        }
+        throw new Error("scopie-102 in actor: wildcard found in array block");
+      }
+      if (aValue.substring(actorLeft, arrayRight) === bValue.substring(bLeft, bSlider)) {
+        return true;
+      }
+      actorLeft = arrayRight + 1;
+    }
     return false;
   }
   return aValue.substring(aLeft, aSlider) === bValue.substring(bLeft, bSlider);
 }
-function compareFrom(aValue, aIndex, bValue, bIndex, vars) {
-  if (aValue[aIndex] === wildcard && aIndex < aValue.length - 1 && aValue[aIndex + 1] === wildcard) {
-    if (aIndex + 2 < aValue.length && aValue[aIndex + 2] !== scopeSeperator) {
-      throw new Error(`scopie-105 in actor@${aIndex}: super wildcard not in the last block`);
+function compareActorToAction(actor, action, vars) {
+  let actorLeft = endOfBlock("actor", actor, 0) + 1;
+  let actionLeft = 0;
+  let actionSlider = 0;
+  let actorSlider = 0;
+  for (; actorLeft < actor.length || actionLeft < action.length; ) {
+    if (actorLeft < actor.length !== actionLeft < action.length) {
+      return false;
     }
-    return {
-      a: jumpAfterSeperator(aValue, aIndex, scopeSeperator),
-      b: jumpAfterSeperator(bValue, bIndex, scopeSeperator),
-      match: true
-    };
-  }
-  if (aValue[aIndex] === wildcard) {
-    return {
-      a: jumpAfterSeperator(aValue, aIndex, blockSeperator),
-      b: jumpAfterSeperator(bValue, bIndex, blockSeperator),
-      match: true
-    };
-  }
-  let bSlider = bIndex;
-  for (; bSlider < bValue.length; bSlider += 1) {
-    if (bValue[bSlider] === blockSeperator || bValue[bSlider] === scopeSeperator) {
-      break;
-    } else if (!isValidCharacter(bValue[bSlider])) {
-      throw new Error(`scopie-100 in scopes@${bSlider}: invalid character '${bValue[bSlider]}'`);
-    }
-  }
-  let aLeft = aIndex;
-  let aSlider = aIndex;
-  let wasArray = false;
-  for (; aSlider < aValue.length; aSlider += 1) {
-    if (aValue[aSlider] === blockSeperator || aValue[aSlider] === scopeSeperator) {
-      if (compareChunk(aValue, aLeft, aSlider, bValue, bIndex, bSlider, vars)) {
-        return {
-          a: aSlider + 1,
-          b: bSlider + 1,
-          match: true
-        };
+    actionSlider = endOfBlock("action", action, actionLeft);
+    actorSlider = endOfBlock("actor", actor, actorLeft);
+    if (actorSlider - actorLeft === 2 && actor[actorLeft] === wildcard && actor[actorLeft + 1] === wildcard) {
+      if (actor.length > actorSlider) {
+        throw new Error("scopie-105 in actor: super wildcard not in the last block");
       }
-      return {
-        a: aIndex,
-        b: bIndex,
-        match: false
-      };
+      return true;
     }
-    if (aValue[aSlider] === arraySeperator) {
-      wasArray = true;
-      if (aValue[aLeft] === varPrefix) {
-        throw new Error(`scopie-101 in actor@${aLeft}: variable '${aValue.substring(aLeft + 1, aSlider)}' found in array block`);
-      }
-      if (aValue[aLeft] === wildcard) {
-        if (aLeft < aValue.length - 1 && aValue[aLeft + 1] === wildcard) {
-          throw new Error(`scopie-103 in actor@${aLeft}: super wildcard found in array block`);
-        }
-        throw new Error(`scopie-102 in actor@${aLeft}: wildcard found in array block`);
-      }
-      if (compareChunk(aValue, aLeft, aSlider, bValue, bIndex, bSlider, void 0)) {
-        return {
-          a: jumpBlockOrScopeSeperator(aValue, aSlider),
-          b: bSlider + 1,
-          match: true
-        };
-      }
-      aLeft = aSlider + 1;
-      aSlider += 1;
-    } else if (!isValidCharacter(aValue[aSlider])) {
-      throw new Error(`scopie-100 in actor@${aSlider}: invalid character '${aValue[aSlider]}'`);
+    if (!compareBlock(
+      actor,
+      actorLeft,
+      actorSlider,
+      action,
+      actionLeft,
+      actionSlider,
+      vars
+    )) {
+      return false;
     }
+    actionLeft = actionSlider + 1;
+    actorLeft = actorSlider + 1;
   }
-  if (wasArray) {
-    if (aValue[aLeft] === varPrefix) {
-      throw new Error(`scopie-101 in actor@${aLeft}: variable '${aValue.substring(aLeft + 1, aSlider)}' found in array block`);
-    }
-    if (aValue[aLeft] === wildcard) {
-      if (aLeft < aValue.length - 1 && aValue[aLeft + 1] === wildcard) {
-        throw new Error(`scopie-103 in actor@${aLeft}: super wildcard found in array block`);
-      }
-      throw new Error(`scopie-102 in actor@${aLeft}: wildcard found in array block`);
-    }
-  }
-  if (compareChunk(aValue, aLeft, aSlider, bValue, bIndex, bSlider, vars)) {
-    return {
-      a: aSlider + 1,
-      b: bSlider + 1,
-      match: true
-    };
-  }
-  return {
-    a: aIndex,
-    b: bIndex,
-    match: false
-  };
+  return true;
 }
-function isAllowed(vars, requiredScopes, actorScopes) {
+function isAllowed(actionScopes, actorRules, vars) {
+  if (actorRules.length === 0) {
+    return false;
+  }
+  if (actionScopes.length === 0) {
+    throw new Error("scopie-106: action scopes was empty");
+  }
   let varMap;
   if (vars) {
     varMap = new Map(Object.entries(vars));
   }
-  if (requiredScopes === "") {
-    throw new Error("scopie-106 in scopes@0: scope was empty");
-  }
-  if (actorScopes === "") {
-    throw new Error("scopie-106 in actor@0: scope was empty");
-  }
   let hasBeenAllowed = false;
-  let actorIndex = 0;
-  let actorLeft = 0;
-  for (; actorLeft < actorScopes.length; ) {
-    const isAllowBlock = actorScopes[actorLeft] === "a";
+  for (let ruleIndex = 0; ruleIndex < actorRules.length; ruleIndex += 1) {
+    const actorRule = actorRules[ruleIndex];
+    if (actorRule.length === 0) {
+      throw new Error("scopie-106: actor rule was empty");
+    }
+    const isAllowBlock = actorRule[0] === "a";
     if (isAllowBlock && hasBeenAllowed) {
-      actorLeft = jumpAfterSeperator(actorScopes, actorLeft, scopeSeperator);
       continue;
     }
-    actorLeft = jumpAfterSeperator(actorScopes, actorLeft, blockSeperator);
-    actorIndex = actorLeft;
-    let ruleLeft = 0;
-    for (; ruleLeft < requiredScopes.length; ) {
-      const comp = compareFrom(actorScopes, actorLeft, requiredScopes, ruleLeft, varMap);
-      if (comp.match) {
-        actorLeft = comp.a;
-        ruleLeft = comp.b;
-        const endOfActor = actorLeft >= actorScopes.length || actorScopes[actorLeft - 1] === scopeSeperator;
-        const endOfRequired = ruleLeft >= requiredScopes.length || requiredScopes[ruleLeft - 1] === scopeSeperator;
-        if (endOfActor && endOfRequired) {
-          if (isAllowBlock) {
-            hasBeenAllowed = true;
-            actorLeft = jumpAfterSeperator(actorScopes, actorLeft, scopeSeperator);
-          } else {
-            return false;
-          }
-          break;
-        } else if (endOfActor !== endOfRequired) {
-          break;
-        }
-      } else {
-        ruleLeft = jumpAfterSeperator(requiredScopes, ruleLeft, scopeSeperator);
-        actorLeft = actorIndex;
+    for (let actionIndex = 0; actionIndex < actionScopes.length; actionIndex += 1) {
+      const actionScope = actionScopes[actionIndex];
+      if (actionScope.length === 0) {
+        throw new Error("scopie-106: action scope was empty");
+      }
+      const match = compareActorToAction(actorRule, actionScope, varMap);
+      if (match && isAllowBlock) {
+        hasBeenAllowed = true;
+      } else if (match && !isAllowBlock) {
+        return false;
       }
     }
-    actorLeft = jumpAfterSeperator(actorScopes, actorLeft, scopeSeperator);
   }
   return hasBeenAllowed;
 }
 function validateScope(scope) {
   if (scope === "") {
-    return new Error("scopie-106@0: scope was empty");
+    return new Error("scopie-106: scope was empty");
   }
   let inArray = false;
   for (let i = 0; i < scope.length; i += 1) {
@@ -241,21 +183,21 @@ function validateScope(scope) {
     }
     if (inArray) {
       if (scope[i] === wildcard && i < scope.length - 1 && scope[i + 1] === wildcard) {
-        return new Error(`scopie-103@${i}: super wildcard found in array block`);
+        return new Error("scopie-103: super wildcard found in array block");
       }
       if (scope[i] === wildcard) {
-        return new Error(`scopie-102@${i}: wildcard found in array block`);
+        return new Error("scopie-102: wildcard found in array block");
       }
       if (scope[i] === varPrefix) {
-        const end = jumpEndOfArrayElement(scope, i);
-        return new Error(`scopie-101@${i}: variable '${scope.substring(i + 1, end)}' found in array block`);
+        const end = endOfArrayElement(scope, i);
+        return new Error(`scopie-101: variable '${scope.substring(i + 1, end)}' found in array block`);
       }
     }
     if (!isValidCharacter(scope[i])) {
-      return new Error(`scopie-100@${i}: invalid character '${scope[i]}'`);
+      return new Error(`scopie-100: invalid character '${scope[i]}'`);
     }
-    if (scope[i] === wildcard && i < scope.length - 1 && scope[i + 1] === wildcard && i < scope.length - 2 && scope[i + 2] !== scopeSeperator) {
-      return new Error(`scopie-105@${i}: super wildcard not in the last block`);
+    if (scope[i] === wildcard && i < scope.length - 1 && scope[i + 1] === wildcard && i < scope.length - 2) {
+      return new Error("scopie-105: super wildcard not in the last block");
     }
   }
   return void 0;
@@ -265,7 +207,6 @@ function validateScope(scope) {
   arraySeperator,
   blockSeperator,
   isAllowed,
-  scopeSeperator,
   validateScope,
   varPrefix,
   wildcard
