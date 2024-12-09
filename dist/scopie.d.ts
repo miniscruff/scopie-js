@@ -1,32 +1,19 @@
 /**
  * Validate if our actor is allowed to perform the action based on the required scope.
+ * @param {string[]} actionScopes - Required actor scopes
+ * @param {string[]} actorRules - What scopes our actor has
  * @param {object} vars - User variables that are replacable in scopes
- * @param {string} requiredScopes - Required actor scopes
- * @param {string} actorScopes - What scopes our actor has
  */
-export function isAllowed(vars: object, requiredScopes: string, actorScopes: string): boolean;
+export function isAllowed(actionScopes: string[], actorRules: string[], vars: object): boolean;
 /**
- * TODO
- * @param {string} scope
+ * Determines whether or not the scope is valid according to scopie rules.
+ * @param {string} scope - Scope to check
+ * @returns {Error|undefined} If the scope is invalid, the validation error is returned,
+ * otherwise undefined is returned.
  */
-export function validateScope(scope: string): Error;
-export const scopeSeperator: ",";
+export function validateScope(scope: string): Error | undefined;
 export const arraySeperator: "|";
 export const blockSeperator: "/";
 export const wildcard: "*";
 export const varPrefix: "@";
-export type CompareFrom = {
-    /**
-     * - next a index
-     */
-    a: int;
-    /**
-     * - next b index
-     */
-    b: int;
-    /**
-     * - whether or noti there was a match
-     */
-    match: bool;
-};
 //# sourceMappingURL=scopie.d.ts.map
