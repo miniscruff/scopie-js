@@ -5,7 +5,7 @@
   "description": "Scope based authorization engine",
   "scripts": {
     "lint": "eslint src/scopie.js",
-    "build": "rm -rf dist/ && tsc && node build.js && gzip -9 -k -f dist/scopie.min.js > dist/scopie.min.js.gz && gzip -9 -k -f dist/scopie.min.cjs > dist/scopie.min.cjs.gz",
+    "build": "rm -rf dist/ && tsc && node build.js && gzip -9 -k -f dist/scopie.node.min.js > dist/scopie.node.min.js.gz && gzip -9 -k -f dist/scopie.node.min.cjs > dist/scopie.node.min.cjs.gz && gzip -9 -k -f dist/scopie.browser.min.js > dist/scopie.browser.min.js.gz",
     "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest",
     "bench": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" node src/scopie.bench.js"
   },
@@ -17,9 +17,10 @@
   "bugs": {
     "url": "https://github.com/miniscruff/scopie-js/issues"
   },
-  "main": "./dist/scopie.min.cjs",
+  "main": "./dist/scopie.node.min.cjs",
   "types": "./dist/scopie.d.ts",
-  "module": "./dist/scopie.min.js",
+  "module": "./dist/scopie.node.min.js",
+  "browser": "./dist/scopie.browser.min.js",
   "exports": {
     "import": "./dist/scopie.js",
     "require": "./dist/scopie.min.cjs",
