@@ -1,0 +1,5 @@
+kind: Fixed
+body: Browser support with build config changes
+time: 2024-12-14T16:18:02.409442719-08:00
+custom:
+    Issue: "17"
