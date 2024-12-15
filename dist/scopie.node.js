@@ -19,10 +19,12 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // src/scopie.js
 var scopie_exports = {};
 __export(scopie_exports, {
+  allowPermission: () => allowPermission,
   arraySeperator: () => arraySeperator,
   blockSeperator: () => blockSeperator,
+  denyPermission: () => denyPermission,
   isAllowed: () => isAllowed,
-  validateScope: () => validateScope,
+  validateScopes: () => validateScopes,
   varPrefix: () => varPrefix,
   wildcard: () => wildcard
 });
@@ -31,6 +33,8 @@ var arraySeperator = "|";
 var blockSeperator = "/";
 var wildcard = "*";
 var varPrefix = "@";
+var allowPermission = "allow";
+var denyPermission = "deny";
 function isValidCharacter(char) {
   if (char >= "a" && char <= "z") {
     return true;
@@ -69,7 +73,7 @@ function compareBlock(aValue, aLeft, aSlider, bValue, bLeft, bSlider, vars) {
   if (aValue[actorLeft] === varPrefix) {
     const key = aValue.substring(actorLeft + 1, aSlider);
     if (!vars.has(key)) {
-      throw new Error(`scopie-104 in actor: variable '${key}' not found`);
+      throw new Error(`scopie-104: variable '${key}' not found`);
     }
     const varValue = vars.get(key);
     return varValue === bValue.substring(bLeft, bSlider);
@@ -81,13 +85,13 @@ function compareBlock(aValue, aLeft, aSlider, bValue, bLeft, bSlider, vars) {
     for (; actorLeft < aSlider; ) {
       const arrayRight = endOfArrayElement(aValue, actorLeft);
       if (aValue[actorLeft] === varPrefix) {
-        throw new Error(`scopie-101 in actor: variable '${aValue.substring(actorLeft + 1, arrayRight)}' found in array block`);
+        throw new Error(`scopie-101: variable '${aValue.substring(actorLeft + 1, arrayRight)}' found in array block`);
       }
       if (aValue[actorLeft] === wildcard) {
         if (arrayRight - actorLeft > 1 && aValue[actorLeft + 1] === wildcard) {
-          throw new Error("scopie-103 in actor: super wildcard found in array block");
+          throw new Error("scopie-103: super wildcard found in array block");
         }
-        throw new Error("scopie-102 in actor: wildcard found in array block");
+        throw new Error("scopie-102: wildcard found in array block");
       }
       if (aValue.substring(actorLeft, arrayRight) === bValue.substring(bLeft, bSlider)) {
         return true;
@@ -111,7 +115,7 @@ function compareActorToAction(actor, action, vars) {
     actorSlider = endOfBlock("actor", actor, actorLeft);
     if (actorSlider - actorLeft === 2 && actor[actorLeft] === wildcard && actor[actorLeft + 1] === wildcard) {
       if (actor.length > actorSlider) {
-        throw new Error("scopie-105 in actor: super wildcard not in the last block");
+        throw new Error("scopie-105: super wildcard not in the last block");
       }
       return true;
     }
@@ -136,7 +140,7 @@ function isAllowed(actionScopes, actorRules, vars) {
     return false;
   }
   if (actionScopes.length === 0) {
-    throw new Error("scopie-106: action scopes was empty");
+    throw new Error("scopie-106 in action: scopes was empty");
   }
   let varMap;
   if (vars) {
@@ -146,7 +150,7 @@ function isAllowed(actionScopes, actorRules, vars) {
   for (let ruleIndex = 0; ruleIndex < actorRules.length; ruleIndex += 1) {
     const actorRule = actorRules[ruleIndex];
     if (actorRule.length === 0) {
-      throw new Error("scopie-106: actor rule was empty");
+      throw new Error("scopie-106 in actor: rule was empty");
     }
     const isAllowBlock = actorRule[0] === "a";
     if (isAllowBlock && hasBeenAllowed) {
@@ -155,7 +159,7 @@ function isAllowed(actionScopes, actorRules, vars) {
     for (let actionIndex = 0; actionIndex < actionScopes.length; actionIndex += 1) {
       const actionScope = actionScopes[actionIndex];
       if (actionScope.length === 0) {
-        throw new Error("scopie-106: action scope was empty");
+        throw new Error("scopie-106 in action: scope was empty");
       }
       const match = compareActorToAction(actorRule, actionScope, varMap);
       if (match && isAllowBlock) {
@@ -167,47 +171,59 @@ function isAllowed(actionScopes, actorRules, vars) {
   }
   return hasBeenAllowed;
 }
-function validateScope(scope) {
-  if (scope === "") {
-    return new Error("scopie-106: scope was empty");
+function validateScopes(scopeOrRules) {
+  if (scopeOrRules.length === 0) {
+    return new Error("scopie-106: scopes are empty");
   }
-  let inArray = false;
-  for (let i = 0; i < scope.length; i += 1) {
-    if (scope[i] === blockSeperator) {
-      inArray = false;
-      continue;
+  const isRules = scopeOrRules[0].startsWith(allowPermission) || scopeOrRules[0].startsWith(denyPermission);
+  for (let scope of scopeOrRules) {
+    if (scope.length === 0) {
+      return new Error("scopie-106: scope or rule was empty");
     }
-    if (scope[i] === arraySeperator) {
-      inArray = true;
-      continue;
+    const isScopeRules = scope.startsWith(allowPermission) || scope.startsWith(denyPermission);
+    if (isRules != isScopeRules) {
+      return new Error("scopie-107: inconsistent array of scopes and rules");
     }
-    if (inArray) {
-      if (scope[i] === wildcard && i < scope.length - 1 && scope[i + 1] === wildcard) {
-        return new Error("scopie-103: super wildcard found in array block");
+    let inArray = false;
+    for (let i = 0; i < scope.length; i += 1) {
+      if (scope[i] === blockSeperator) {
+        inArray = false;
+        continue;
       }
-      if (scope[i] === wildcard) {
-        return new Error("scopie-102: wildcard found in array block");
+      if (scope[i] === arraySeperator) {
+        inArray = true;
+        continue;
       }
-      if (scope[i] === varPrefix) {
-        const end = endOfArrayElement(scope, i);
-        return new Error(`scopie-101: variable '${scope.substring(i + 1, end)}' found in array block`);
+      if (inArray) {
+        if (scope[i] === wildcard && i < scope.length - 1 && scope[i + 1] === wildcard) {
+          return new Error("scopie-103: super wildcard found in array block");
+        }
+        if (scope[i] === wildcard) {
+          return new Error("scopie-102: wildcard found in array block");
+        }
+        if (scope[i] === varPrefix) {
+          const end = endOfArrayElement(scope, i);
+          return new Error(`scopie-101: variable '${scope.substring(i + 1, end)}' found in array block`);
+        }
       }
-    }
-    if (!isValidCharacter(scope[i])) {
-      return new Error(`scopie-100: invalid character '${scope[i]}'`);
-    }
-    if (scope[i] === wildcard && i < scope.length - 1 && scope[i + 1] === wildcard && i < scope.length - 2) {
-      return new Error("scopie-105: super wildcard not in the last block");
+      if (!isValidCharacter(scope[i])) {
+        return new Error(`scopie-100: invalid character '${scope[i]}'`);
+      }
+      if (scope[i] === wildcard && i < scope.length - 1 && scope[i + 1] === wildcard && i < scope.length - 2) {
+        return new Error("scopie-105: super wildcard not in the last block");
+      }
     }
   }
   return void 0;
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
+  allowPermission,
   arraySeperator,
   blockSeperator,
+  denyPermission,
   isAllowed,
-  validateScope,
+  validateScopes,
   varPrefix,
   wildcard
 });
