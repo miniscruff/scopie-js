@@ -1,6 +1,6 @@
 /* eslint-disable jest/no-conditional-expect, jest/no-conditional-in-test, no-unused-vars */
-import scenarios from './scopie_scenarios.json';
-import { isAllowed, validateScope } from './scopie';
+import scenarios from './scenarios.json';
+import { isAllowed, validateScopes } from './scopie';
 
 describe('is allowed', () => {
   it.each(scenarios.isAllowedTests)(
@@ -20,11 +20,11 @@ describe('is allowed', () => {
 });
 
 describe('is valid', () => {
-  it.each(scenarios.scopeValidTests)(
+  it.each(scenarios.validateScopesTests)(
     '$id',
-    ({ id, scope, error }) => {
+    ({ id, scopes, error }) => {
       expect.assertions(1);
-      const err = validateScope(scope);
+      const err = validateScopes(scopes);
       if (error === undefined) {
         expect(err).toBeUndefined();
       } else {
