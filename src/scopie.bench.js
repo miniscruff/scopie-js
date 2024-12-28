@@ -1,5 +1,5 @@
 // eslint-disable-next-line
-import scenarios from './scopie_scenarios.json' with { type: "json" };
+import scenarios from './scenarios.json' with { type: "json" };
 
 import { isAllowed } from './scopie.js';
 import { Bench } from 'tinybench';
@@ -16,6 +16,6 @@ for (let tc of scenarios.benchmarks) {
   })
 }
 
-await bench.run();
+bench.runSync();
 
 console.table(bench.table());
