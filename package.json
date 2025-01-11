@@ -38,6 +38,6 @@
     "globals": "15.14.0",
     "jest": "29.7.0",
     "tinybench": "3.1.0",
-    "typescript": "5.7.2"
+    "typescript": "5.7.3"
   }
 }
