@@ -12,17 +12,17 @@ import { isAllowed } from "scopie";
 
 const users = {
     elsa: {
-        scopes: ["allow/blog/create|update"],
+        rules: ["allow/blog/create|update"],
     },
     bella: {
-        scopes: ["allow/blog/create"],
+        rules: ["allow/blog/create"],
     },
 ]
 const blogPosts = {}
 
 function createBlog(username, blogSlug, blogContent) {
     const user = users[username]
-    if (isAllowed(user.scopes, ["blog/create"])) {
+    if (isAllowed(["blog/create"], user.rules)) {
         blogPosts[blogSlug] = {
             author: user,
             content: blogContent,
@@ -32,7 +32,7 @@ function createBlog(username, blogSlug, blogContent) {
 
 function updateBlog(username, blogSlug, blogContent) {
     const user = users[username]
-    if (isAllowed(user.scopes, ["blog/update"])) {
+    if (isAllowed(["blog/update"], user.rules)) {
         blogPosts[blogSlug] = {
             author: user,
             content: blogContent,
@@ -45,7 +45,7 @@ function updateBlog(username, blogSlug, blogContent) {
 import { isAllowed } from "scopie";
 
 type User = {
-    scopes: Array<string>;
+    rules: Array<string>;
 };
 
 type BlogPost = {
@@ -63,10 +63,10 @@ type BlogStore = {
 
 const users: UserStore = {
     elsa: {
-        scopes: ["allow/blog/create|update"],
+        rules: ["allow/blog/create|update"],
     },
     bella: {
-        scopes: ["allow/blog/create"],
+        rules: ["allow/blog/create"],
     },
 }
 
@@ -74,7 +74,7 @@ const blogPosts: BlogStore = {}
 
 function createBlog(username: string, blogSlug: string, blogContent: string) {
     const user = users[username]
-    if (isAllowed(user.scopes, ["blog/create"])) {
+    if (isAllowed(["blog/create"], user.rules)) {
         blogPosts[blogSlug] = {
             author: user,
             content: blogContent,
@@ -84,7 +84,7 @@ function createBlog(username: string, blogSlug: string, blogContent: string) {
 
 function updateBlog(username: string, blogSlug: string, blogContent: string) {
     const user = users[username]
-    if (isAllowed(user.scopes, ["blog/update"])) {
+    if (isAllowed(["blog/update"], user.rules)) {
         blogPosts[blogSlug] = {
             author: user,
             content: blogContent,

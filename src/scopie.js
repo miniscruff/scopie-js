@@ -62,127 +62,125 @@ function endOfBlock(category, value, start) {
 }
 
 /** Compares two strings with respect to variables and wildcards.
- * @param {string} aValue
- * @param {int} aLeft
- * @param {int} aSlider
- * @param {string} bValue
- * @param {int} bLeft
- * @param {int} bSlider
+ * @param {string} rule
+ * @param {int} ruleLeft
+ * @param {int} ruleSlider
+ * @param {string} scope
+ * @param {int} scopeLeft
+ * @param {int} scopeSlider
  * @param {Map<string,string>} vars
- * @returns {boolean} Whether or not our actor matches the action block
+ * @returns {boolean} Whether or not our rule block matches the scope block
  */
-function compareBlock(aValue, aLeft, aSlider, bValue, bLeft, bSlider, vars) {
-  let actorLeft = aLeft;
-
-  if (aValue[actorLeft] === varPrefix) {
-    const key = aValue.substring(actorLeft + 1, aSlider);
+function compareBlock(rule, ruleLeft, ruleSlider, scope, scopeLeft, scopeSlider, vars) {
+  if (rule[ruleLeft] === varPrefix) {
+    const key = rule.substring(ruleLeft + 1, ruleSlider);
     if (!vars.has(key)) {
       throw new Error(`scopie-104: variable '${key}' not found`);
     }
 
     const varValue = vars.get(key);
-    return varValue === bValue.substring(bLeft, bSlider);
+    return varValue === scope.substring(scopeLeft, scopeSlider);
   }
 
-  if (aSlider - actorLeft === 1 && aValue[actorLeft] === wildcard) {
+  if (ruleSlider - ruleLeft === 1 && rule[ruleLeft] === wildcard) {
     return true;
   }
 
-  if (aValue.substring(actorLeft, aSlider).indexOf(arraySeperator) >= 0) {
-    for (; actorLeft < aSlider;) {
-      const arrayRight = endOfArrayElement(aValue, actorLeft);
+  if (rule.substring(ruleLeft, ruleSlider).indexOf(arraySeperator) >= 0) {
+    for (; ruleLeft < ruleSlider;) {
+      const arrayRight = endOfArrayElement(rule, ruleLeft);
 
-      if (aValue[actorLeft] === varPrefix) {
-        throw new Error(`scopie-101: variable '${aValue.substring(actorLeft + 1, arrayRight)}' found in array block`);
+      if (rule[ruleLeft] === varPrefix) {
+        throw new Error(`scopie-101: variable '${rule.substring(ruleLeft + 1, arrayRight)}' found in array block`);
       }
 
-      if (aValue[actorLeft] === wildcard) {
-        if (arrayRight - actorLeft > 1 && aValue[actorLeft + 1] === wildcard) {
+      if (rule[ruleLeft] === wildcard) {
+        if (arrayRight - ruleLeft > 1 && rule[ruleLeft + 1] === wildcard) {
           throw new Error('scopie-103: super wildcard found in array block');
         }
 
         throw new Error('scopie-102: wildcard found in array block');
       }
 
-      if (aValue.substring(actorLeft, arrayRight) === bValue.substring(bLeft, bSlider)) {
+      if (rule.substring(ruleLeft, arrayRight) === scope.substring(scopeLeft, scopeSlider)) {
         return true;
       }
 
-      actorLeft = arrayRight + 1;
+      ruleLeft = arrayRight + 1;
     }
 
     return false;
   }
 
-  return aValue.substring(aLeft, aSlider) === bValue.substring(bLeft, bSlider);
+  return rule.substring(ruleLeft, ruleSlider) === scope.substring(scopeLeft, scopeSlider);
 }
 
-/** Determines if an actor matches an action
- * @param {string} actor - Actor scope
- * @param {string} action - Action rule
+/** Determines if an rule matches a scope
+ * @param {string} scope
+ * @param {string} rule
  * @param {Map<string,string>} vars - Variables for translations
- * @returns {boolean} Whether or not the actor matches the rule
+ * @returns {boolean} Whether or not the scope matches the rule
  */
-function compareActorToAction(actor, action, vars) {
-  // Skip the allow and deny prefix for actors
-  let actorLeft = endOfBlock('actor', actor, 0) + 1;
-  let actionLeft = 0;
-  let actionSlider = 0;
-  let actorSlider = 0;
+function compareScopeToRule(scope, rule, vars) {
+  // Skip the allow and deny prefix for rules
+  let ruleLeft = endOfBlock('rule', rule, 0) + 1;
+  let scopeLeft = 0;
+  let ruleSlider = 0;
+  let scopeSlider = 0;
 
-  for (; actorLeft < actor.length || actionLeft < action.length;) {
+  for (; ruleLeft < rule.length || scopeLeft < scope.length;) {
     // In case one is longer then the other
-    if ((actorLeft < actor.length) !== (actionLeft < action.length)) {
+    if ((ruleLeft < rule.length) !== (scopeLeft < scope.length)) {
       return false;
     }
 
-    actionSlider = endOfBlock('action', action, actionLeft);
-    actorSlider = endOfBlock('actor', actor, actorLeft);
+    scopeSlider = endOfBlock('scope', scope, scopeLeft);
+    ruleSlider = endOfBlock('rule', rule, ruleLeft);
 
     // Super wildcards are checked here as it skips the who rest of the checks.
     if (
-      actorSlider - actorLeft === 2
-      && actor[actorLeft] === wildcard
-      && actor[actorLeft + 1] === wildcard
+      ruleSlider - ruleLeft === 2
+      && rule[ruleLeft] === wildcard
+      && rule[ruleLeft + 1] === wildcard
     ) {
-      if (actor.length > actorSlider) {
+      if (rule.length > ruleSlider) {
         throw new Error('scopie-105: super wildcard not in the last block');
       }
 
       return true;
     }
     if (!compareBlock(
-      actor,
-      actorLeft,
-      actorSlider,
-      action,
-      actionLeft,
-      actionSlider,
+      rule,
+      ruleLeft,
+      ruleSlider,
+      scope,
+      scopeLeft,
+      scopeSlider,
       vars,
     )) {
       return false;
     }
 
-    actionLeft = actionSlider + 1;
-    actorLeft = actorSlider + 1;
+    scopeLeft = scopeSlider + 1;
+    ruleLeft = ruleSlider + 1;
   }
 
   return true;
 }
 
 /**
- * Validate if our actor is allowed to perform the action based on the required scope.
- * @param {string[]} actionScopes - Required actor scopes
- * @param {string[]} actorRules - What scopes our actor has
+ * Validate if our user is allowed to perform the action based on their rules and the required scopes.
+ * @param {string[]} scopes - Required scopes
+ * @param {string[]} rules - What rules our user has
  * @param {object} vars - User variables that are replacable in scopes
  */
-export function isAllowed(actionScopes, actorRules, vars) {
-  if (actorRules.length === 0) {
+export function isAllowed(scopes, rules, vars) {
+  if (rules.length === 0) {
     return false;
   }
 
-  if (actionScopes.length === 0) {
-    throw new Error('scopie-106 in action: scopes was empty');
+  if (scopes.length === 0) {
+    throw new Error('scopie-106 in scope: scopes was empty');
   }
 
   let varMap;
@@ -192,24 +190,24 @@ export function isAllowed(actionScopes, actorRules, vars) {
 
   let hasBeenAllowed = false;
 
-  for (let ruleIndex = 0; ruleIndex < actorRules.length; ruleIndex += 1) {
-    const actorRule = actorRules[ruleIndex];
-    if (actorRule.length === 0) {
-      throw new Error('scopie-106 in actor: rule was empty');
+  for (let ruleIndex = 0; ruleIndex < rules.length; ruleIndex += 1) {
+    const rule = rules[ruleIndex];
+    if (rule.length === 0) {
+      throw new Error('scopie-106 in rule: rule was empty');
     }
 
-    const isAllowBlock = actorRule[0] === 'a';
+    const isAllowBlock = rule[0] === 'a';
     if (isAllowBlock && hasBeenAllowed) {
       continue;
     }
 
-    for (let actionIndex = 0; actionIndex < actionScopes.length; actionIndex += 1) {
-      const actionScope = actionScopes[actionIndex];
-      if (actionScope.length === 0) {
-        throw new Error('scopie-106 in action: scope was empty');
+    for (let scopeIndex = 0; scopeIndex < scopes.length; scopeIndex += 1) {
+      const scope = scopes[scopeIndex];
+      if (scope.length === 0) {
+        throw new Error('scopie-106 in scope: scope was empty');
       }
 
-      const match = compareActorToAction(actorRule, actionScope, varMap);
+      const match = compareScopeToRule(scope, rule, varMap);
       if (match && isAllowBlock) {
         hasBeenAllowed = true;
       } else if (match && !isAllowBlock) {
