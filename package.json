@@ -1,6 +1,6 @@
 {
   "name": "scopie",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "type": "module",
   "description": "Scope based authorization engine",
   "scripts": {
