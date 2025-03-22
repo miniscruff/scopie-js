@@ -6,10 +6,10 @@ describe('is allowed', () => {
   it.each(scenarios.isAllowedTests)(
     '$id',
     ({
-      id, actorRules, actionScopes, variables, error, result,
+      id, rules, scopes, variables, error, result,
     }) => {
       expect.assertions(1);
-      const testFn = () => isAllowed(actionScopes, actorRules, variables);
+      const testFn = () => isAllowed(scopes, rules, variables);
       if (error === undefined) {
         expect(testFn()).toBe(result);
       } else {
