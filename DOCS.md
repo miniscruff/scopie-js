@@ -1,123 +1,127 @@
+## Constants
+
+<dl>
+<dt><a href="#arraySeperator">arraySeperator</a></dt>
+<dd><p>arraySeperator is the character between array elements.
+See <a href="https://scopie.dev/specification/terms/#block">block term</a> for how blocks are formatted.</p>
+</dd>
+<dt><a href="#blockSeperator">blockSeperator</a></dt>
+<dd><p>blockSeperator is the character between blocks.
+See <a href="https://scopie.dev/specification/terms/#block">block term</a> for how blocks are formatted.</p>
+</dd>
+<dt><a href="#wildcard">wildcard</a></dt>
+<dd><p>wildcard is the character that matches any value in a block.
+See <a href="https://scopie.dev/specification/terms/#block">block term</a> for how blocks are formatted.</p>
+</dd>
+<dt><a href="#varPrefix">varPrefix</a></dt>
+<dd><p>varPrefix is the character that prefixes variables in blocks.
+See <a href="https://scopie.dev/specification/terms/#block">block term</a> for how blocks are formatted.</p>
+</dd>
+<dt><a href="#allowPermission">allowPermission</a></dt>
+<dd><p>allowPermission is the value used to denote an allowed rule.
+See <a href="https://scopie.dev/specification/terms/#permisson">permission term</a> for how actions are checked.</p>
+</dd>
+<dt><a href="#denyPermission">denyPermission</a></dt>
+<dd><p>denyPermission is the value used to denote a denied rule.
+See <a href="https://scopie.dev/specification/terms/#permisson">permission term</a> for how actions are checked.</p>
+</dd>
+</dl>
+
 ## Functions
 
 <dl>
-<dt><a href="#isValidCharacter">isValidCharacter(char)</a> ⇒ <code>boolean</code></dt>
-<dd><p>Checks character validity</p>
-</dd>
-<dt><a href="#endOfArrayElement">endOfArrayElement(value, start)</a> ⇒ <code>number</code></dt>
-<dd><p>Calculates the end of an array element</p>
-</dd>
-<dt><a href="#endOfBlock">endOfBlock(category, value, start)</a> ⇒ <code>number</code></dt>
-<dd><p>Calculates the end of a scope block</p>
-</dd>
-<dt><a href="#compareBlock">compareBlock(rule, ruleLeft, ruleSlider, scope, scopeLeft, scopeSlider, vars)</a> ⇒ <code>boolean</code></dt>
-<dd><p>Compares two strings with respect to variables and wildcards.</p>
-</dd>
-<dt><a href="#compareScopeToRule">compareScopeToRule(scope, rule, vars)</a> ⇒ <code>boolean</code></dt>
-<dd><p>Determines if an rule matches a scope</p>
-</dd>
-<dt><a href="#isAllowed">isAllowed(scopes, rules, vars)</a></dt>
-<dd><p>Validate if our user is allowed to perform the action based on their rules and the required scopes.</p>
+<dt><a href="#isAllowed">isAllowed(scopes, rules, vars)</a> ⇒</dt>
+<dd><p>Is Allowed determines whether or not the scopes are allowed with the given rules.</p>
 </dd>
 <dt><a href="#validateScopes">validateScopes(scopeOrRules)</a> ⇒ <code>Error</code> | <code>undefined</code></dt>
 <dd><p>Determines whether or not the scopes or rules are valid according to scopie rules.</p>
 </dd>
 </dl>
 
-<a name="isValidCharacter"></a>
+<a name="arraySeperator"></a>
 
-## isValidCharacter(char) ⇒ <code>boolean</code>
-Checks character validity
+## arraySeperator
+arraySeperator is the character between array elements.
+See [block term](https://scopie.dev/specification/terms/#block) for how blocks are formatted.
 
-**Kind**: global function
-**Returns**: <code>boolean</code> - whether or not the character is valid within a scope.
+**Kind**: global constant  
+<a name="blockSeperator"></a>
 
-| Param | Type | Description |
-| --- | --- | --- |
-| char | <code>character</code> | Single character to check |
+## blockSeperator
+blockSeperator is the character between blocks.
+See [block term](https://scopie.dev/specification/terms/#block) for how blocks are formatted.
 
-<a name="endOfArrayElement"></a>
+**Kind**: global constant  
+<a name="wildcard"></a>
 
-## endOfArrayElement(value, start) ⇒ <code>number</code>
-Calculates the end of an array element
+## wildcard
+wildcard is the character that matches any value in a block.
+See [block term](https://scopie.dev/specification/terms/#block) for how blocks are formatted.
 
-**Kind**: global function
-**Returns**: <code>number</code> - index at the end of the array element
+**Kind**: global constant  
+<a name="varPrefix"></a>
 
-| Param | Type | Description |
-| --- | --- | --- |
-| value | <code>string</code> | Value of our scope we are traversing |
-| start | <code>number</code> | Index to start searching from |
+## varPrefix
+varPrefix is the character that prefixes variables in blocks.
+See [block term](https://scopie.dev/specification/terms/#block) for how blocks are formatted.
 
-<a name="endOfBlock"></a>
+**Kind**: global constant  
+<a name="allowPermission"></a>
 
-## endOfBlock(category, value, start) ⇒ <code>number</code>
-Calculates the end of a scope block
+## allowPermission
+allowPermission is the value used to denote an allowed rule.
+See [permission term](https://scopie.dev/specification/terms/#permisson) for how actions are checked.
 
-**Kind**: global function
-**Returns**: <code>number</code> - index at the end of the scope block
+**Kind**: global constant  
+<a name="denyPermission"></a>
 
-| Param | Type | Description |
-| --- | --- | --- |
-| category | <code>string</code> | Value to use when returning an error for our category |
-| value | <code>string</code> | Value of our scope we are traversing |
-| start | <code>number</code> | Index to start searching from |
+## denyPermission
+denyPermission is the value used to denote a denied rule.
+See [permission term](https://scopie.dev/specification/terms/#permisson) for how actions are checked.
 
-<a name="compareBlock"></a>
-
-## compareBlock(rule, ruleLeft, ruleSlider, scope, scopeLeft, scopeSlider, vars) ⇒ <code>boolean</code>
-Compares two strings with respect to variables and wildcards.
-
-**Kind**: global function
-**Returns**: <code>boolean</code> - Whether or not our rule block matches the scope block
-
-| Param | Type |
-| --- | --- |
-| rule | <code>string</code> |
-| ruleLeft | <code>int</code> |
-| ruleSlider | <code>int</code> |
-| scope | <code>string</code> |
-| scopeLeft | <code>int</code> |
-| scopeSlider | <code>int</code> |
-| vars | <code>Map.&lt;string, string&gt;</code> |
-
-<a name="compareScopeToRule"></a>
-
-## compareScopeToRule(scope, rule, vars) ⇒ <code>boolean</code>
-Determines if an rule matches a scope
-
-**Kind**: global function
-**Returns**: <code>boolean</code> - Whether or not the scope matches the rule
-
-| Param | Type | Description |
-| --- | --- | --- |
-| scope | <code>string</code> |  |
-| rule | <code>string</code> |  |
-| vars | <code>Map.&lt;string, string&gt;</code> | Variables for translations |
-
+**Kind**: global constant  
 <a name="isAllowed"></a>
 
-## isAllowed(scopes, rules, vars)
-Validate if our user is allowed to perform the action based on their rules and the required scopes.
+## isAllowed(scopes, rules, vars) ⇒
+Is Allowed determines whether or not the scopes are allowed with the given rules.
 
-**Kind**: global function
+**Kind**: global function  
+**Returns**: boolean - Whether or not the scopes are allowed with the given rules.  
+**Throws**:
+
+- Any invalid scope or rule issues, see [scopie errors](https://scopie.dev/specification/errors/) for possible issues.
+
 
 | Param | Type | Description |
 | --- | --- | --- |
-| scopes | <code>Array.&lt;string&gt;</code> | Required scopes |
-| rules | <code>Array.&lt;string&gt;</code> | What rules our user has |
-| vars | <code>object</code> | User variables that are replacable in scopes |
+| scopes | <code>Array.&lt;string&gt;</code> | Scopes specifies one or more scopes our actor must match. When using more then one scope, they are treated as a series of OR conditions, and an actor will be allowed if they match any of the scopes. |
+| rules | <code>Array.&lt;string&gt;</code> | Rules specifies one or more rules our requesting scopes has to have to be allowed access. |
+| vars | <code>object</code> | An optional dictionary or map of variable to values. Variable keys should not start with `@` |
 
+**Example**  
+```js
+// returns true
+isAllowed(
+  ["accounts/thor/edit"],         // scopes
+  ["allow/accounts/@username/*"], // rules
+  { "username": "thor" },         // vars
+)
+```
 <a name="validateScopes"></a>
 
 ## validateScopes(scopeOrRules) ⇒ <code>Error</code> \| <code>undefined</code>
 Determines whether or not the scopes or rules are valid according to scopie rules.
 
-**Kind**: global function
+**Kind**: global function  
 **Returns**: <code>Error</code> \| <code>undefined</code> - If the scope is invalid, the validation error is returned,
-otherwise undefined is returned.
+otherwise undefined is returned.  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | scopeOrRules | <code>Array.&lt;string&gt;</code> | Scope or rules to check |
 
+**Example**  
+```js
+// returns undefined
+validateScopes(["accounts/thor/edit"])
+```
