@@ -1,12 +1,14 @@
 {
   "name": "scopie",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "type": "module",
   "description": "Scope based authorization engine",
   "scripts": {
     "lint": "eslint src/scopie.js",
     "build": "rm -rf dist/ && tsc && node build.js && gzip -9 -k -f dist/scopie.node.min.js > dist/scopie.node.min.js.gz && gzip -9 -k -f dist/scopie.node.min.cjs > dist/scopie.node.min.cjs.gz && gzip -9 -k -f dist/scopie.browser.min.js > dist/scopie.browser.min.js.gz",
     "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest",
+    "bump": "changie bump auto && changie merge && npm version --no-git-tag $(changie latest)",
+    "docs-build": "jsdoc2md src/scopie.js > DOCS.md",
     "bench": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" node src/scopie.bench.js"
   },
   "author": "miniscruff",
@@ -37,7 +39,10 @@
     "eslint-plugin-jest": "28.11.0",
     "globals": "16.0.0",
     "jest": "29.7.0",
+    "jsdoc": "4.0.4",
+    "jsdoc-to-markdown": "9.1.1",
     "tinybench": "4.0.1",
+    "typedoc": "0.28.1",
     "typescript": "5.8.2"
   }
 }

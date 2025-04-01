@@ -1,14 +1,46 @@
+/**
+ * Authorization engine for configuring per user per feature access control.
+ * Access is configured via plain text and handled directly via code.
+ * Configuration storage is controlled by you, scopie just handles the logic.
+ *
+ * See {@link https://scopie.dev Scopie Docs} for full specification.
+ */
+
+
+/** arraySeperator is the character between array elements.
+ * See {@link https://scopie.dev/specification/terms/#block block term} for how blocks are formatted.
+ */
 export const arraySeperator = '|';
+
+/** blockSeperator is the character between blocks.
+ * See {@link https://scopie.dev/specification/terms/#block block term} for how blocks are formatted.
+ */
 export const blockSeperator = '/';
+
+/** wildcard is the character that matches any value in a block.
+ * See {@link https://scopie.dev/specification/terms/#block block term} for how blocks are formatted.
+ */
 export const wildcard = '*';
+
+/** varPrefix is the character that prefixes variables in blocks.
+ * See {@link https://scopie.dev/specification/terms/#block block term} for how blocks are formatted.
+ */
 export const varPrefix = '@';
 
+/** allowPermission is the value used to denote an allowed rule.
+ * See {@link https://scopie.dev/specification/terms/#permisson permission term} for how actions are checked.
+ */
 export const allowPermission = "allow";
+
+/** denyPermission is the value used to denote a denied rule.
+ * See {@link https://scopie.dev/specification/terms/#permisson permission term} for how actions are checked.
+ */
 export const denyPermission = "deny";
 
 /** Checks character validity
  * @param {character} char - Single character to check
  * @returns {boolean} whether or not the character is valid within a scope.
+ * @access private
  */
 function isValidCharacter(char) {
   if (char >= 'a' && char <= 'z') {
@@ -30,6 +62,7 @@ function isValidCharacter(char) {
  * @param {string} value - Value of our scope we are traversing
  * @param {number} start - Index to start searching from
  * @returns {number} index at the end of the array element
+ * @access private
  */
 function endOfArrayElement(value, start) {
   for (let i = start + 1; i < value.length; i += 1) {
@@ -46,6 +79,7 @@ function endOfArrayElement(value, start) {
  * @param {string} value - Value of our scope we are traversing
  * @param {number} start - Index to start searching from
  * @returns {number} index at the end of the scope block
+ * @access private
  */
 function endOfBlock(category, value, start) {
   for (let i = start; i < value.length; i += 1) {
@@ -70,6 +104,7 @@ function endOfBlock(category, value, start) {
  * @param {int} scopeSlider
  * @param {Map<string,string>} vars
  * @returns {boolean} Whether or not our rule block matches the scope block
+ * @access private
  */
 function compareBlock(rule, ruleLeft, ruleSlider, scope, scopeLeft, scopeSlider, vars) {
   if (rule[ruleLeft] === varPrefix) {
@@ -120,6 +155,7 @@ function compareBlock(rule, ruleLeft, ruleSlider, scope, scopeLeft, scopeSlider,
  * @param {string} rule
  * @param {Map<string,string>} vars - Variables for translations
  * @returns {boolean} Whether or not the scope matches the rule
+ * @access private
  */
 function compareScopeToRule(scope, rule, vars) {
   // Skip the allow and deny prefix for rules
@@ -169,10 +205,19 @@ function compareScopeToRule(scope, rule, vars) {
 }
 
 /**
- * Validate if our user is allowed to perform the action based on their rules and the required scopes.
- * @param {string[]} scopes - Required scopes
- * @param {string[]} rules - What rules our user has
- * @param {object} vars - User variables that are replacable in scopes
+ * Is Allowed determines whether or not the scopes are allowed with the given rules.
+ * @param {string[]} scopes - Scopes specifies one or more scopes our actor must match. When using more then one scope, they are treated as a series of OR conditions, and an actor will be allowed if they match any of the scopes.
+ * @param {string[]} rules - Rules specifies one or more rules our requesting scopes has to have to be allowed access.
+ * @param {object} vars - An optional dictionary or map of variable to values. Variable keys should not start with `@`
+ * @returns boolean - Whether or not the scopes are allowed with the given rules.
+ * @throws Any invalid scope or rule issues, see {@link https://scopie.dev/specification/errors/ scopie errors} for possible issues.
+ * @example
+ * // returns true
+ * isAllowed(
+ *   ["accounts/thor/edit"],         // scopes
+ *   ["allow/accounts/@username/*"], // rules
+ *   { "username": "thor" },         // vars
+ * )
  */
 export function isAllowed(scopes, rules, vars) {
   if (rules.length === 0) {
@@ -224,6 +269,9 @@ export function isAllowed(scopes, rules, vars) {
  * @param {string[]} scopeOrRules - Scope or rules to check
  * @returns {Error|undefined} If the scope is invalid, the validation error is returned,
  * otherwise undefined is returned.
+ * @example
+ * // returns undefined
+ * validateScopes(["accounts/thor/edit"])
  */
 export function validateScopes(scopeOrRules) {
   if (scopeOrRules.length === 0) {

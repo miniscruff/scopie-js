@@ -1,9 +1,11 @@
 # Scopie
 
-[![NPM Version](https://img.shields.io/npm/v/scopie.svg)](https://www.npmjs.com/package/scopie)
-[![NPM Downloads](https://img.shields.io/npm/dw/scopie)](https://www.npmjs.com/package/scopie)
+[![NPM Version](https://img.shields.io/npm/v/scopie.svg?style=for-the-badge&logoColor=white)](https://www.npmjs.com/package/scopie)
+[![NPM Downloads](https://img.shields.io/npm/dw/scopie?style=for-the-badge&logoColor=white)](https://www.npmjs.com/package/scopie)
 
 Javascript implementation of [scopie](https://github.com/miniscruff/scopie).
+
+Generated documentation can be viewed at [DOCS.md](./DOCS.md).
 
 ## Example
 
