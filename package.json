@@ -40,7 +40,7 @@
     "globals": "16.3.0",
     "jest": "30.0.4",
     "jsdoc": "4.0.4",
-    "jsdoc-to-markdown": "9.1.1",
+    "jsdoc-to-markdown": "9.1.2",
     "tinybench": "4.0.1",
     "typedoc": "0.28.7",
     "typescript": "5.8.3"
