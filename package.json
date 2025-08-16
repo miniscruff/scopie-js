@@ -42,7 +42,7 @@
     "jsdoc": "4.0.4",
     "jsdoc-to-markdown": "9.1.2",
     "tinybench": "5.0.0",
-    "typedoc": "0.28.9",
+    "typedoc": "0.28.10",
     "typescript": "5.8.3"
   }
 }
