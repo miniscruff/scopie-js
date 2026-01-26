@@ -7,6 +7,7 @@
     "lint": "eslint src/scopie.js",
     "build": "rm -rf dist/ && tsc && node build.js && gzip -9 -k -f dist/scopie.node.min.js > dist/scopie.node.min.js.gz && gzip -9 -k -f dist/scopie.node.min.cjs > dist/scopie.node.min.cjs.gz && gzip -9 -k -f dist/scopie.browser.min.js > dist/scopie.browser.min.js.gz",
     "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest",
+    "test-watch": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest --watch",
     "bump": "changie bump auto && changie merge && npm version --no-git-tag $(changie latest)",
     "docs-build": "jsdoc2md src/scopie.js > DOCS.md",
     "bench": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" node src/scopie.bench.js"
