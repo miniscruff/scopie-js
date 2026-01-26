@@ -8,8 +8,8 @@ on:
   push:
     branches:
       - main
-    # paths:
-      # - CHANGELOG.md
+    paths:
+      - CHANGELOG.md
 
 jobs:
   build:
@@ -23,9 +23,7 @@ jobs:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
 
-      # - run: npm publish
-        # env:
-          # NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: npm publish
 
       - name: Get the latest version
         id: latest
