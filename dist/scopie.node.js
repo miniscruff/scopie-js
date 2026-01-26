@@ -19,23 +19,24 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // src/scopie.js
 var scopie_exports = {};
 __export(scopie_exports, {
-  allowPermission: () => allowPermission,
-  arraySeperator: () => arraySeperator,
-  blockSeperator: () => blockSeperator,
-  denyPermission: () => denyPermission,
+  allowGrant: () => allowGrant,
+  arraySeparator: () => arraySeparator,
+  blockSeparator: () => blockSeparator,
+  denyGrant: () => denyGrant,
   isAllowed: () => isAllowed,
-  validateScopes: () => validateScopes,
+  validateActions: () => validateActions,
+  validatePermissions: () => validatePermissions,
   varPrefix: () => varPrefix,
   wildcard: () => wildcard
 });
 module.exports = __toCommonJS(scopie_exports);
-var arraySeperator = "|";
-var blockSeperator = "/";
+var arraySeparator = "|";
+var blockSeparator = "/";
 var wildcard = "*";
 var varPrefix = "@";
-var allowPermission = "allow";
-var denyPermission = "deny";
-function isValidCharacter(char) {
+var allowGrant = "allow";
+var denyGrant = "deny";
+function isValidLiteral(char) {
   if (char >= "a" && char <= "z") {
     return true;
   }
@@ -45,22 +46,34 @@ function isValidCharacter(char) {
   if (char >= "0" && char <= "9") {
     return true;
   }
-  return char === "_" || char === "-" || char === varPrefix || char === wildcard;
+  return char === "_" || char === "-";
+}
+function isValidCharacter(char) {
+  return isValidLiteral(char) || char === varPrefix || char === wildcard;
 }
 function endOfArrayElement(value, start) {
   for (let i = start + 1; i < value.length; i += 1) {
-    if (value[i] === blockSeperator || value[i] === arraySeperator) {
+    if (value[i] === blockSeparator || value[i] === arraySeparator) {
       return i;
     }
   }
   return value.length;
 }
+function skipGrant(value) {
+  if (value.startsWith(denyGrant)) {
+    return 5;
+  }
+  if (value.startsWith(allowGrant)) {
+    return 6;
+  }
+  throw new Error("scopie-107: permission does not start with a grant");
+}
 function endOfBlock(category, value, start) {
   for (let i = start; i < value.length; i += 1) {
-    if (value[i] === blockSeperator) {
+    if (value[i] === blockSeparator) {
       return i;
     }
-    if (value[i] === arraySeperator) {
+    if (value[i] === arraySeparator) {
       continue;
     } else if (!isValidCharacter(value[i])) {
       throw new Error(`scopie-100 in ${category}: invalid character '${value[i]}'`);
@@ -68,99 +81,99 @@ function endOfBlock(category, value, start) {
   }
   return value.length;
 }
-function compareBlock(rule, ruleLeft, ruleSlider, scope, scopeLeft, scopeSlider, vars) {
-  if (rule[ruleLeft] === varPrefix) {
-    const key = rule.substring(ruleLeft + 1, ruleSlider);
+function compareBlock(permission, permissionLeft, permissionSlider, action, actionLeft, actionSlider, vars) {
+  if (permission[permissionLeft] === varPrefix) {
+    const key = permission.substring(permissionLeft + 1, permissionSlider);
     if (!vars.has(key)) {
       throw new Error(`scopie-104: variable '${key}' not found`);
     }
     const varValue = vars.get(key);
-    return varValue === scope.substring(scopeLeft, scopeSlider);
+    return varValue === action.substring(actionLeft, actionSlider);
   }
-  if (ruleSlider - ruleLeft === 1 && rule[ruleLeft] === wildcard) {
+  if (permissionSlider - permissionLeft === 1 && permission[permissionLeft] === wildcard) {
     return true;
   }
-  if (rule.substring(ruleLeft, ruleSlider).indexOf(arraySeperator) >= 0) {
-    for (; ruleLeft < ruleSlider; ) {
-      const arrayRight = endOfArrayElement(rule, ruleLeft);
-      if (rule[ruleLeft] === varPrefix) {
-        throw new Error(`scopie-101: variable '${rule.substring(ruleLeft + 1, arrayRight)}' found in array block`);
+  if (permission.substring(permissionLeft, permissionSlider).indexOf(arraySeparator) >= 0) {
+    for (; permissionLeft < permissionSlider; ) {
+      const arrayRight = endOfArrayElement(permission, permissionLeft);
+      if (permission[permissionLeft] === varPrefix) {
+        throw new Error(`scopie-101: variable '${permission.substring(permissionLeft + 1, arrayRight)}' found in array block`);
       }
-      if (rule[ruleLeft] === wildcard) {
-        if (arrayRight - ruleLeft > 1 && rule[ruleLeft + 1] === wildcard) {
+      if (permission[permissionLeft] === wildcard) {
+        if (arrayRight - permissionLeft > 1 && permission[permissionLeft + 1] === wildcard) {
           throw new Error("scopie-103: super wildcard found in array block");
         }
         throw new Error("scopie-102: wildcard found in array block");
       }
-      if (rule.substring(ruleLeft, arrayRight) === scope.substring(scopeLeft, scopeSlider)) {
+      if (permission.substring(permissionLeft, arrayRight) === action.substring(actionLeft, actionSlider)) {
         return true;
       }
-      ruleLeft = arrayRight + 1;
+      permissionLeft = arrayRight + 1;
     }
     return false;
   }
-  return rule.substring(ruleLeft, ruleSlider) === scope.substring(scopeLeft, scopeSlider);
+  return permission.substring(permissionLeft, permissionSlider) === action.substring(actionLeft, actionSlider);
 }
-function compareScopeToRule(scope, rule, vars) {
-  let ruleLeft = endOfBlock("rule", rule, 0) + 1;
-  let scopeLeft = 0;
-  let ruleSlider = 0;
-  let scopeSlider = 0;
-  for (; ruleLeft < rule.length || scopeLeft < scope.length; ) {
-    if (ruleLeft < rule.length !== scopeLeft < scope.length) {
+function compareActionToPermission(action, permission, vars) {
+  let permissionLeft = skipGrant(permission);
+  let actionLeft = 0;
+  let permissionSlider = 0;
+  let actionSlider = 0;
+  for (; permissionLeft < permission.length || actionLeft < action.length; ) {
+    if (permissionLeft < permission.length !== actionLeft < action.length) {
       return false;
     }
-    scopeSlider = endOfBlock("scope", scope, scopeLeft);
-    ruleSlider = endOfBlock("rule", rule, ruleLeft);
-    if (ruleSlider - ruleLeft === 2 && rule[ruleLeft] === wildcard && rule[ruleLeft + 1] === wildcard) {
-      if (rule.length > ruleSlider) {
+    actionSlider = endOfBlock("action", action, actionLeft);
+    permissionSlider = endOfBlock("permission", permission, permissionLeft);
+    if (permissionSlider - permissionLeft === 2 && permission[permissionLeft] === wildcard && permission[permissionLeft + 1] === wildcard) {
+      if (permission.length > permissionSlider) {
         throw new Error("scopie-105: super wildcard not in the last block");
       }
       return true;
     }
     if (!compareBlock(
-      rule,
-      ruleLeft,
-      ruleSlider,
-      scope,
-      scopeLeft,
-      scopeSlider,
+      permission,
+      permissionLeft,
+      permissionSlider,
+      action,
+      actionLeft,
+      actionSlider,
       vars
     )) {
       return false;
     }
-    scopeLeft = scopeSlider + 1;
-    ruleLeft = ruleSlider + 1;
+    actionLeft = actionSlider + 1;
+    permissionLeft = permissionSlider + 1;
   }
   return true;
 }
-function isAllowed(scopes, rules, vars) {
-  if (rules.length === 0) {
+function isAllowed(actions, permissions, vars) {
+  if (permissions.length === 0) {
     return false;
   }
-  if (scopes.length === 0) {
-    throw new Error("scopie-106 in scope: scopes was empty");
+  if (actions.length === 0) {
+    throw new Error("scopie-106 in action: actions was empty");
   }
   let varMap;
   if (vars) {
     varMap = new Map(Object.entries(vars));
   }
   let hasBeenAllowed = false;
-  for (let ruleIndex = 0; ruleIndex < rules.length; ruleIndex += 1) {
-    const rule = rules[ruleIndex];
-    if (rule.length === 0) {
-      throw new Error("scopie-106 in rule: rule was empty");
+  for (let permissionIndex = 0; permissionIndex < permissions.length; permissionIndex += 1) {
+    const permission = permissions[permissionIndex];
+    if (permission.length === 0) {
+      throw new Error("scopie-106 in permission: permission was empty");
     }
-    const isAllowBlock = rule[0] === "a";
+    const isAllowBlock = permission[0] === "a";
     if (isAllowBlock && hasBeenAllowed) {
       continue;
     }
-    for (let scopeIndex = 0; scopeIndex < scopes.length; scopeIndex += 1) {
-      const scope = scopes[scopeIndex];
-      if (scope.length === 0) {
-        throw new Error("scopie-106 in scope: scope was empty");
+    for (let actionIndex = 0; actionIndex < actions.length; actionIndex += 1) {
+      const action = actions[actionIndex];
+      if (action.length === 0) {
+        throw new Error("scopie-106 in action: action was empty");
       }
-      const match = compareScopeToRule(scope, rule, varMap);
+      const match = compareActionToPermission(action, permission, varMap);
       if (match && isAllowBlock) {
         hasBeenAllowed = true;
       } else if (match && !isAllowBlock) {
@@ -170,45 +183,62 @@ function isAllowed(scopes, rules, vars) {
   }
   return hasBeenAllowed;
 }
-function validateScopes(scopeOrRules) {
-  if (scopeOrRules.length === 0) {
-    return new Error("scopie-106: scopes are empty");
+function validateActions(actions) {
+  if (actions.length === 0) {
+    return new Error("scopie-106: action array was empty");
   }
-  const isRules = scopeOrRules[0].startsWith(allowPermission) || scopeOrRules[0].startsWith(denyPermission);
-  for (let scope of scopeOrRules) {
-    if (scope.length === 0) {
-      return new Error("scopie-106: scope or rule was empty");
+  for (let action of actions) {
+    if (action.length === 0) {
+      return new Error("scopie-106: action was empty");
     }
-    const isScopeRules = scope.startsWith(allowPermission) || scope.startsWith(denyPermission);
-    if (isRules != isScopeRules) {
-      return new Error("scopie-107: inconsistent array of scopes and rules");
+    for (let i = 0; i < action.length; i += 1) {
+      if (!isValidLiteral(action[i]) && action[i] !== blockSeparator) {
+        return new Error(`scopie-100: invalid character '${action[i]}'`);
+      }
+    }
+  }
+  return void 0;
+}
+function validatePermissions(permissions) {
+  if (permissions.length === 0) {
+    return new Error("scopie-106: permission array was empty");
+  }
+  for (let permission of permissions) {
+    if (permission.length === 0) {
+      return new Error("scopie-106: permission was empty");
     }
     let inArray = false;
-    for (let i = 0; i < scope.length; i += 1) {
-      if (scope[i] === blockSeperator) {
+    let i = 0;
+    try {
+      i = skipGrant(permission);
+    } catch (e) {
+      return e;
+    }
+    for (; i < permission.length; i += 1) {
+      if (permission[i] === blockSeparator) {
         inArray = false;
         continue;
       }
-      if (scope[i] === arraySeperator) {
+      if (permission[i] === arraySeparator) {
         inArray = true;
         continue;
       }
       if (inArray) {
-        if (scope[i] === wildcard && i < scope.length - 1 && scope[i + 1] === wildcard) {
+        if (permission[i] === wildcard && i < permission.length - 1 && permission[i + 1] === wildcard) {
           return new Error("scopie-103: super wildcard found in array block");
         }
-        if (scope[i] === wildcard) {
+        if (permission[i] === wildcard) {
           return new Error("scopie-102: wildcard found in array block");
         }
-        if (scope[i] === varPrefix) {
-          const end = endOfArrayElement(scope, i);
-          return new Error(`scopie-101: variable '${scope.substring(i + 1, end)}' found in array block`);
+        if (permission[i] === varPrefix) {
+          const end = endOfArrayElement(permission, i);
+          return new Error(`scopie-101: variable '${permission.substring(i + 1, end)}' found in array block`);
         }
       }
-      if (!isValidCharacter(scope[i])) {
-        return new Error(`scopie-100: invalid character '${scope[i]}'`);
+      if (!isValidCharacter(permission[i])) {
+        return new Error(`scopie-100: invalid character '${permission[i]}'`);
       }
-      if (scope[i] === wildcard && i < scope.length - 1 && scope[i + 1] === wildcard && i < scope.length - 2) {
+      if (permission[i] === wildcard && i < permission.length - 1 && permission[i + 1] === wildcard && i < permission.length - 2) {
         return new Error("scopie-105: super wildcard not in the last block");
       }
     }
@@ -217,12 +247,13 @@ function validateScopes(scopeOrRules) {
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  allowPermission,
-  arraySeperator,
-  blockSeperator,
-  denyPermission,
+  allowGrant,
+  arraySeparator,
+  blockSeparator,
+  denyGrant,
   isAllowed,
-  validateScopes,
+  validateActions,
+  validatePermissions,
   varPrefix,
   wildcard
 });
