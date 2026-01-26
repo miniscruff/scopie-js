@@ -39,7 +39,7 @@ export const denyGrant = "deny";
 
 /** Checks character validity
  * @param {character} char - Single character to check
- * @returns {boolean} whether or not the character is valid within a action.
+ * @returns {boolean} whether or not the character is valid within a literal block.
  * @access private
  */
 function isValidLiteral(char) {
@@ -60,7 +60,7 @@ function isValidLiteral(char) {
 
 /** Checks character validity
  * @param {character} char - Single character to check
- * @returns {boolean} whether or not the character is valid within a action.
+ * @returns {boolean} whether or not the character is valid within a block.
  * @access private
  */
 function isValidCharacter(char) {
@@ -227,7 +227,7 @@ function compareActionToPermission(action, permission, vars) {
 
 /**
  * Is Allowed determines whether or not the actions are allowed with the given permissions.
- * @param {string[]} actions - actions specifies one or more actions our actor must match. When using more then one action, they are treated as a series of OR conditions, and an actor will be allowed if they match any of the actions.
+ * @param {string[]} actions - actions specifies one or more actions our user must match. When using more then one action, they are treated as a series of OR conditions, and an user will be allowed if they match any of the actions.
  * @param {string[]} permissions - permissions specifies one or more permissions our requesting actions has to have to be allowed access.
  * @param {object} vars - An optional dictionary or map of variable to values. Variable keys should not start with `@`
  * @returns boolean - Whether or not the actions are allowed with the given permissions.
@@ -286,9 +286,9 @@ export function isAllowed(actions, permissions, vars) {
 }
 
 /**
- * Determines whether or not the actions or permissions are valid according to scopie permissions.
- * @param {string[]} actionOrpermissions - action or permissions to check
- * @returns {Error|undefined} If the action is invalid, the validation error is returned,
+ * Determines whether or not the actions are valid according to scopie specifications.
+ * @param {string[]} actions - action or permissions to check
+ * @returns {Error|undefined} If the action are invalid, the validation error is returned,
  * otherwise undefined is returned.
  * @example
  * // returns undefined
@@ -314,6 +314,15 @@ export function validateActions(actions) {
   return undefined;
 }
 
+/**
+ * Determines whether or not the permissions are valid according to scopie specifications.
+ * @param {string[]} permissions - permissions to check
+ * @returns {Error|undefined} If the permissions are invalid, the validation error is returned,
+ * otherwise undefined is returned.
+ * @example
+ * // returns undefined
+ * validatePermissions(["grant:accounts/thor/*"])
+ */
 export function validatePermissions(permissions) {
   if (permissions.length === 0) {
     return new Error('scopie-106: permission array was empty');
