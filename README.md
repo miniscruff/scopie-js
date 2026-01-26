@@ -14,17 +14,17 @@ import { isAllowed } from "scopie";
 
 const users = {
     elsa: {
-        rules: ["allow/blog/create|update"],
+        permissions: ["allow:blog/create|update"],
     },
     bella: {
-        rules: ["allow/blog/create"],
+        permissions: ["allow:blog/create"],
     },
 ]
 const blogPosts = {}
 
 function createBlog(username, blogSlug, blogContent) {
     const user = users[username]
-    if (isAllowed(["blog/create"], user.rules)) {
+    if (isAllowed(["blog/create"], user.permissions)) {
         blogPosts[blogSlug] = {
             author: user,
             content: blogContent,
@@ -34,7 +34,7 @@ function createBlog(username, blogSlug, blogContent) {
 
 function updateBlog(username, blogSlug, blogContent) {
     const user = users[username]
-    if (isAllowed(["blog/update"], user.rules)) {
+    if (isAllowed(["blog/update"], user.permissions)) {
         blogPosts[blogSlug] = {
             author: user,
             content: blogContent,
@@ -47,7 +47,7 @@ function updateBlog(username, blogSlug, blogContent) {
 import { isAllowed } from "scopie";
 
 type User = {
-    rules: Array<string>;
+    permissions: Array<string>;
 };
 
 type BlogPost = {
@@ -65,10 +65,10 @@ type BlogStore = {
 
 const users: UserStore = {
     elsa: {
-        rules: ["allow/blog/create|update"],
+        permissions: ["allow:blog/create|update"],
     },
     bella: {
-        rules: ["allow/blog/create"],
+        permissions: ["allow:blog/create"],
     },
 }
 
@@ -76,7 +76,7 @@ const blogPosts: BlogStore = {}
 
 function createBlog(username: string, blogSlug: string, blogContent: string) {
     const user = users[username]
-    if (isAllowed(["blog/create"], user.rules)) {
+    if (isAllowed(["blog/create"], user.permissions)) {
         blogPosts[blogSlug] = {
             author: user,
             content: blogContent,
@@ -86,7 +86,7 @@ function createBlog(username: string, blogSlug: string, blogContent: string) {
 
 function updateBlog(username: string, blogSlug: string, blogContent: string) {
     const user = users[username]
-    if (isAllowed(["blog/update"], user.rules)) {
+    if (isAllowed(["blog/update"], user.permissions)) {
         blogPosts[blogSlug] = {
             author: user,
             content: blogContent,

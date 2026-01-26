@@ -236,7 +236,7 @@ function compareActionToPermission(action, permission, vars) {
  * // returns true
  * isAllowed(
  *   ["accounts/thor/edit"],         // actions
- *   ["allow/accounts/@username/*"], // permissions
+ *   ["allow:accounts/@username/*"], // permissions
  *   { "username": "thor" },         // vars
  * )
  */
