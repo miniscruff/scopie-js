@@ -1,15 +1,15 @@
 /* eslint-disable jest/no-conditional-expect, jest/no-conditional-in-test, no-unused-vars */
 import scenarios from './scenarios.json';
-import { isAllowed, validateScopes } from './scopie';
+import { isAllowed, validateActions, validatePermissions } from './scopie';
 
 describe('is allowed', () => {
   it.each(scenarios.isAllowedTests)(
     '$id',
     ({
-      id, rules, scopes, variables, error, result,
+      id, actions, permissions, variables, error, result,
     }) => {
       expect.assertions(1);
-      const testFn = () => isAllowed(scopes, rules, variables);
+      const testFn = () => isAllowed(actions, permissions, variables);
       if (error === undefined) {
         expect(testFn()).toBe(result);
       } else {
@@ -19,12 +19,27 @@ describe('is allowed', () => {
   );
 });
 
-describe('is valid', () => {
-  it.each(scenarios.validateScopesTests)(
+describe('is valid actions', () => {
+  it.each(scenarios.validateActionsTests)(
     '$id',
-    ({ id, scopes, error }) => {
+    ({ id, actions, error }) => {
       expect.assertions(1);
-      const err = validateScopes(scopes);
+      const err = validateActions(actions);
+      if (error === undefined) {
+        expect(err).toBeUndefined();
+      } else {
+        expect(err.message).toStrictEqual(error);
+      }
+    },
+  );
+});
+
+describe('is valid permissions', () => {
+  it.each(scenarios.validatePermissionsTests)(
+    '$id',
+    ({ id, permissions, error }) => {
+      expect.assertions(1);
+      const err = validatePermissions(permissions);
       if (error === undefined) {
         expect(err).toBeUndefined();
       } else {

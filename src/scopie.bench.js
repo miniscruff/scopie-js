@@ -12,7 +12,7 @@ const bench = new Bench({
 
 for (let tc of scenarios.benchmarks) {
   bench.add(tc.id, () => {
-    isAllowed(tc.scopes, tc.rules, tc.variables);
+    isAllowed(tc.actions, tc.permissions, tc.variables);
   })
 }
 

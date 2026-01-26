@@ -7,15 +7,15 @@
  */
 
 
-/** arraySeperator is the character between array elements.
+/** arraySeparator is the character between array elements.
  * See {@link https://scopie.dev/specification/terms/#block block term} for how blocks are formatted.
  */
-export const arraySeperator = '|';
+export const arraySeparator = '|';
 
-/** blockSeperator is the character between blocks.
+/** blockSeparator is the character between blocks.
  * See {@link https://scopie.dev/specification/terms/#block block term} for how blocks are formatted.
  */
-export const blockSeperator = '/';
+export const blockSeparator = '/';
 
 /** wildcard is the character that matches any value in a block.
  * See {@link https://scopie.dev/specification/terms/#block block term} for how blocks are formatted.
@@ -27,22 +27,22 @@ export const wildcard = '*';
  */
 export const varPrefix = '@';
 
-/** allowPermission is the value used to denote an allowed rule.
- * See {@link https://scopie.dev/specification/terms/#permisson permission term} for how actions are checked.
+/** allowGrant is the value used to denote an allowed permission.
+ * See {@link https://scopie.dev/specification/terms/#grant permission term} for how actions are checked.
  */
-export const allowPermission = "allow";
+export const allowGrant = "allow";
 
-/** denyPermission is the value used to denote a denied rule.
- * See {@link https://scopie.dev/specification/terms/#permisson permission term} for how actions are checked.
+/** denyGrant is the value used to denote a denied permission.
+ * See {@link https://scopie.dev/specification/terms/#grant permission term} for how actions are checked.
  */
-export const denyPermission = "deny";
+export const denyGrant = "deny";
 
 /** Checks character validity
  * @param {character} char - Single character to check
- * @returns {boolean} whether or not the character is valid within a scope.
+ * @returns {boolean} whether or not the character is valid within a action.
  * @access private
  */
-function isValidCharacter(char) {
+function isValidLiteral(char) {
   if (char >= 'a' && char <= 'z') {
     return true;
   }
@@ -55,18 +55,27 @@ function isValidCharacter(char) {
     return true;
   }
 
-  return char === '_' || char === '-' || char === varPrefix || char === wildcard;
+  return char === '_' || char === '-';
+}
+
+/** Checks character validity
+ * @param {character} char - Single character to check
+ * @returns {boolean} whether or not the character is valid within a action.
+ * @access private
+ */
+function isValidCharacter(char) {
+  return isValidLiteral(char) || char === varPrefix || char === wildcard;
 }
 
 /** Calculates the end of an array element
- * @param {string} value - Value of our scope we are traversing
+ * @param {string} value - Value of our action we are traversing
  * @param {number} start - Index to start searching from
  * @returns {number} index at the end of the array element
  * @access private
  */
 function endOfArrayElement(value, start) {
   for (let i = start + 1; i < value.length; i += 1) {
-    if (value[i] === blockSeperator || value[i] === arraySeperator) {
+    if (value[i] === blockSeparator || value[i] === arraySeparator) {
       return i;
     }
   }
@@ -74,18 +83,30 @@ function endOfArrayElement(value, start) {
   return value.length;
 }
 
-/** Calculates the end of a scope block
+function skipGrant(value) {
+	if (value.startsWith(denyGrant)) {
+		return 5
+	}
+
+	if (value.startsWith(allowGrant)) {
+		return 6
+	}
+
+	throw new Error("scopie-107: permission does not start with a grant")
+}
+
+/** Calculates the end of a action block
  * @param {string} category - Value to use when returning an error for our category
- * @param {string} value - Value of our scope we are traversing
+ * @param {string} value - Value of our action we are traversing
  * @param {number} start - Index to start searching from
- * @returns {number} index at the end of the scope block
+ * @returns {number} index at the end of the action block
  * @access private
  */
 function endOfBlock(category, value, start) {
   for (let i = start; i < value.length; i += 1) {
-    if (value[i] === blockSeperator) {
+    if (value[i] === blockSeparator) {
       return i;
-    } if (value[i] === arraySeperator) {
+    } if (value[i] === arraySeparator) {
       continue;
     } else if (!isValidCharacter(value[i])) {
       throw new Error(`scopie-100 in ${category}: invalid character '${value[i]}'`);
@@ -96,136 +117,136 @@ function endOfBlock(category, value, start) {
 }
 
 /** Compares two strings with respect to variables and wildcards.
- * @param {string} rule
- * @param {int} ruleLeft
- * @param {int} ruleSlider
- * @param {string} scope
- * @param {int} scopeLeft
- * @param {int} scopeSlider
+ * @param {string} permission
+ * @param {int} permissionLeft
+ * @param {int} permissionSlider
+ * @param {string} action
+ * @param {int} actionLeft
+ * @param {int} actionSlider
  * @param {Map<string,string>} vars
- * @returns {boolean} Whether or not our rule block matches the scope block
+ * @returns {boolean} Whether or not our permission block matches the action block
  * @access private
  */
-function compareBlock(rule, ruleLeft, ruleSlider, scope, scopeLeft, scopeSlider, vars) {
-  if (rule[ruleLeft] === varPrefix) {
-    const key = rule.substring(ruleLeft + 1, ruleSlider);
+function compareBlock(permission, permissionLeft, permissionSlider, action, actionLeft, actionSlider, vars) {
+  if (permission[permissionLeft] === varPrefix) {
+    const key = permission.substring(permissionLeft + 1, permissionSlider);
     if (!vars.has(key)) {
       throw new Error(`scopie-104: variable '${key}' not found`);
     }
 
     const varValue = vars.get(key);
-    return varValue === scope.substring(scopeLeft, scopeSlider);
+    return varValue === action.substring(actionLeft, actionSlider);
   }
 
-  if (ruleSlider - ruleLeft === 1 && rule[ruleLeft] === wildcard) {
+  if (permissionSlider - permissionLeft === 1 && permission[permissionLeft] === wildcard) {
     return true;
   }
 
-  if (rule.substring(ruleLeft, ruleSlider).indexOf(arraySeperator) >= 0) {
-    for (; ruleLeft < ruleSlider;) {
-      const arrayRight = endOfArrayElement(rule, ruleLeft);
+  if (permission.substring(permissionLeft, permissionSlider).indexOf(arraySeparator) >= 0) {
+    for (; permissionLeft < permissionSlider;) {
+      const arrayRight = endOfArrayElement(permission, permissionLeft);
 
-      if (rule[ruleLeft] === varPrefix) {
-        throw new Error(`scopie-101: variable '${rule.substring(ruleLeft + 1, arrayRight)}' found in array block`);
+      if (permission[permissionLeft] === varPrefix) {
+        throw new Error(`scopie-101: variable '${permission.substring(permissionLeft + 1, arrayRight)}' found in array block`);
       }
 
-      if (rule[ruleLeft] === wildcard) {
-        if (arrayRight - ruleLeft > 1 && rule[ruleLeft + 1] === wildcard) {
+      if (permission[permissionLeft] === wildcard) {
+        if (arrayRight - permissionLeft > 1 && permission[permissionLeft + 1] === wildcard) {
           throw new Error('scopie-103: super wildcard found in array block');
         }
 
         throw new Error('scopie-102: wildcard found in array block');
       }
 
-      if (rule.substring(ruleLeft, arrayRight) === scope.substring(scopeLeft, scopeSlider)) {
+      if (permission.substring(permissionLeft, arrayRight) === action.substring(actionLeft, actionSlider)) {
         return true;
       }
 
-      ruleLeft = arrayRight + 1;
+      permissionLeft = arrayRight + 1;
     }
 
     return false;
   }
 
-  return rule.substring(ruleLeft, ruleSlider) === scope.substring(scopeLeft, scopeSlider);
+  return permission.substring(permissionLeft, permissionSlider) === action.substring(actionLeft, actionSlider);
 }
 
-/** Determines if an rule matches a scope
- * @param {string} scope
- * @param {string} rule
+/** Determines if an permission matches a action
+ * @param {string} action
+ * @param {string} permission
  * @param {Map<string,string>} vars - Variables for translations
- * @returns {boolean} Whether or not the scope matches the rule
+ * @returns {boolean} Whether or not the action matches the permission
  * @access private
  */
-function compareScopeToRule(scope, rule, vars) {
-  // Skip the allow and deny prefix for rules
-  let ruleLeft = endOfBlock('rule', rule, 0) + 1;
-  let scopeLeft = 0;
-  let ruleSlider = 0;
-  let scopeSlider = 0;
+function compareActionToPermission(action, permission, vars) {
+  // Skip the grant prefix for permissions
+  let permissionLeft = skipGrant(permission);
+  let actionLeft = 0;
+  let permissionSlider = 0;
+  let actionSlider = 0;
 
-  for (; ruleLeft < rule.length || scopeLeft < scope.length;) {
+  for (; permissionLeft < permission.length || actionLeft < action.length;) {
     // In case one is longer then the other
-    if ((ruleLeft < rule.length) !== (scopeLeft < scope.length)) {
+    if ((permissionLeft < permission.length) !== (actionLeft < action.length)) {
       return false;
     }
 
-    scopeSlider = endOfBlock('scope', scope, scopeLeft);
-    ruleSlider = endOfBlock('rule', rule, ruleLeft);
+    actionSlider = endOfBlock('action', action, actionLeft);
+    permissionSlider = endOfBlock('permission', permission, permissionLeft);
 
     // Super wildcards are checked here as it skips the who rest of the checks.
     if (
-      ruleSlider - ruleLeft === 2
-      && rule[ruleLeft] === wildcard
-      && rule[ruleLeft + 1] === wildcard
+      permissionSlider - permissionLeft === 2
+      && permission[permissionLeft] === wildcard
+      && permission[permissionLeft + 1] === wildcard
     ) {
-      if (rule.length > ruleSlider) {
+      if (permission.length > permissionSlider) {
         throw new Error('scopie-105: super wildcard not in the last block');
       }
 
       return true;
     }
     if (!compareBlock(
-      rule,
-      ruleLeft,
-      ruleSlider,
-      scope,
-      scopeLeft,
-      scopeSlider,
+      permission,
+      permissionLeft,
+      permissionSlider,
+      action,
+      actionLeft,
+      actionSlider,
       vars,
     )) {
       return false;
     }
 
-    scopeLeft = scopeSlider + 1;
-    ruleLeft = ruleSlider + 1;
+    actionLeft = actionSlider + 1;
+    permissionLeft = permissionSlider + 1;
   }
 
   return true;
 }
 
 /**
- * Is Allowed determines whether or not the scopes are allowed with the given rules.
- * @param {string[]} scopes - Scopes specifies one or more scopes our actor must match. When using more then one scope, they are treated as a series of OR conditions, and an actor will be allowed if they match any of the scopes.
- * @param {string[]} rules - Rules specifies one or more rules our requesting scopes has to have to be allowed access.
+ * Is Allowed determines whether or not the actions are allowed with the given permissions.
+ * @param {string[]} actions - actions specifies one or more actions our actor must match. When using more then one action, they are treated as a series of OR conditions, and an actor will be allowed if they match any of the actions.
+ * @param {string[]} permissions - permissions specifies one or more permissions our requesting actions has to have to be allowed access.
  * @param {object} vars - An optional dictionary or map of variable to values. Variable keys should not start with `@`
- * @returns boolean - Whether or not the scopes are allowed with the given rules.
- * @throws Any invalid scope or rule issues, see {@link https://scopie.dev/specification/errors/ scopie errors} for possible issues.
+ * @returns boolean - Whether or not the actions are allowed with the given permissions.
+ * @throws Any invalid action or permission issues, see {@link https://scopie.dev/specification/errors/ scopie errors} for possible issues.
  * @example
  * // returns true
  * isAllowed(
- *   ["accounts/thor/edit"],         // scopes
- *   ["allow/accounts/@username/*"], // rules
+ *   ["accounts/thor/edit"],         // actions
+ *   ["allow/accounts/@username/*"], // permissions
  *   { "username": "thor" },         // vars
  * )
  */
-export function isAllowed(scopes, rules, vars) {
-  if (rules.length === 0) {
+export function isAllowed(actions, permissions, vars) {
+  if (permissions.length === 0) {
     return false;
   }
 
-  if (scopes.length === 0) {
-    throw new Error('scopie-106 in scope: scopes was empty');
+  if (actions.length === 0) {
+    throw new Error('scopie-106 in action: actions was empty');
   }
 
   let varMap;
@@ -235,24 +256,24 @@ export function isAllowed(scopes, rules, vars) {
 
   let hasBeenAllowed = false;
 
-  for (let ruleIndex = 0; ruleIndex < rules.length; ruleIndex += 1) {
-    const rule = rules[ruleIndex];
-    if (rule.length === 0) {
-      throw new Error('scopie-106 in rule: rule was empty');
+  for (let permissionIndex = 0; permissionIndex < permissions.length; permissionIndex += 1) {
+    const permission = permissions[permissionIndex];
+    if (permission.length === 0) {
+      throw new Error('scopie-106 in permission: permission was empty');
     }
 
-    const isAllowBlock = rule[0] === 'a';
+    const isAllowBlock = permission[0] === 'a';
     if (isAllowBlock && hasBeenAllowed) {
       continue;
     }
 
-    for (let scopeIndex = 0; scopeIndex < scopes.length; scopeIndex += 1) {
-      const scope = scopes[scopeIndex];
-      if (scope.length === 0) {
-        throw new Error('scopie-106 in scope: scope was empty');
+    for (let actionIndex = 0; actionIndex < actions.length; actionIndex += 1) {
+      const action = actions[actionIndex];
+      if (action.length === 0) {
+        throw new Error('scopie-106 in action: action was empty');
       }
 
-      const match = compareScopeToRule(scope, rule, varMap);
+      const match = compareActionToPermission(action, permission, varMap);
       if (match && isAllowBlock) {
         hasBeenAllowed = true;
       } else if (match && !isAllowBlock) {
@@ -265,67 +286,85 @@ export function isAllowed(scopes, rules, vars) {
 }
 
 /**
- * Determines whether or not the scopes or rules are valid according to scopie rules.
- * @param {string[]} scopeOrRules - Scope or rules to check
- * @returns {Error|undefined} If the scope is invalid, the validation error is returned,
+ * Determines whether or not the actions or permissions are valid according to scopie permissions.
+ * @param {string[]} actionOrpermissions - action or permissions to check
+ * @returns {Error|undefined} If the action is invalid, the validation error is returned,
  * otherwise undefined is returned.
  * @example
  * // returns undefined
- * validateScopes(["accounts/thor/edit"])
+ * validateActions(["accounts/thor/edit"])
  */
-export function validateScopes(scopeOrRules) {
-  if (scopeOrRules.length === 0) {
-    return new Error('scopie-106: scopes are empty');
+export function validateActions(actions) {
+  if (actions.length === 0) {
+    return new Error('scopie-106: action array was empty');
   }
 
-  const isRules = scopeOrRules[0].startsWith(allowPermission) ||
-    scopeOrRules[0].startsWith(denyPermission)
-
-  for (let scope of scopeOrRules) {
-    if (scope.length === 0) {
-      return new Error('scopie-106: scope or rule was empty');
+  for (let action of actions) {
+    if (action.length === 0) {
+      return new Error('scopie-106: action was empty');
     }
 
-    const isScopeRules = scope.startsWith(allowPermission) ||
-      scope.startsWith(denyPermission)
-    if (isRules != isScopeRules) {
-      return new Error('scopie-107: inconsistent array of scopes and rules');
+    for (let i = 0; i < action.length; i += 1) {
+      if (!isValidLiteral(action[i]) && action[i] !== blockSeparator) {
+        return new Error(`scopie-100: invalid character '${action[i]}'`);
+      }
+    }
+  }
+
+  return undefined;
+}
+
+export function validatePermissions(permissions) {
+  if (permissions.length === 0) {
+    return new Error('scopie-106: permission array was empty');
+  }
+
+  for (let permission of permissions) {
+    if (permission.length === 0) {
+      return new Error('scopie-106: permission was empty');
     }
 
     let inArray = false;
+    let i = 0;
 
-    for (let i = 0; i < scope.length; i += 1) {
-      if (scope[i] === blockSeperator) {
+    try {
+      i = skipGrant(permission)
+    } catch(e) {
+      return e
+    }
+
+    for (; i < permission.length; i += 1) {
+      if (permission[i] === blockSeparator) {
         inArray = false;
         continue;
       }
 
-      if (scope[i] === arraySeperator) {
+      if (permission[i] === arraySeparator) {
         inArray = true;
         continue;
       }
 
       if (inArray) {
-        if (scope[i] === wildcard && i < scope.length - 1 && scope[i + 1] === wildcard) {
+        if (permission[i] === wildcard && i < permission.length - 1 && permission[i + 1] === wildcard) {
           return new Error('scopie-103: super wildcard found in array block');
         }
 
-        if (scope[i] === wildcard) {
+        if (permission[i] === wildcard) {
           return new Error('scopie-102: wildcard found in array block');
         }
 
-        if (scope[i] === varPrefix) {
-          const end = endOfArrayElement(scope, i);
-          return new Error(`scopie-101: variable '${scope.substring(i + 1, end)}' found in array block`);
+        if (permission[i] === varPrefix) {
+          const end = endOfArrayElement(permission, i);
+          return new Error(`scopie-101: variable '${permission.substring(i + 1, end)}' found in array block`);
         }
       }
 
-      if (!isValidCharacter(scope[i])) {
-        return new Error(`scopie-100: invalid character '${scope[i]}'`);
+      if (!isValidCharacter(permission[i])) {
+        return new Error(`scopie-100: invalid character '${permission[i]}'`);
       }
 
-      if (scope[i] === wildcard && i < scope.length - 1 && scope[i + 1] === wildcard
-        && i < scope.length - 2) {
+      if (permission[i] === wildcard && i < permission.length - 1 && permission[i + 1] === wildcard
+        && i < permission.length - 2) {
         return new Error('scopie-105: super wildcard not in the last block');
       }
     }
