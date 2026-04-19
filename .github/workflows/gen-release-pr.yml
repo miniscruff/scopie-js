@@ -16,20 +16,20 @@ jobs:
           node-version: '24'
 
       - name: Batch changes
-        uses: miniscruff/changie-action@v2
+        uses: miniscruff/changie-action@v3
         with:
           version: latest
           args: batch auto
 
       - name: Merge
-        uses: miniscruff/changie-action@v2
+        uses: miniscruff/changie-action@v3
         with:
           version: latest
           args: merge
 
       - name: Latest
         id: latest
-        uses: miniscruff/changie-action@v2
+        uses: miniscruff/changie-action@v3
         with:
           version: latest
           args: latest
