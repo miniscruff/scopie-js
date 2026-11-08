@@ -37,7 +37,7 @@ jobs:
       - name: Run builds
         run: |
           npm install
-          npm version --no-git-tag "${{ steps.latest.outputs.output }}"
+          npm version --no-git-tag-version "${{ steps.latest.outputs.output }}"
           npm run build
 
       - name: Create Pull Request
