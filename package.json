@@ -12,6 +12,9 @@
     "docs-build": "jsdoc2md src/scopie.js > DOCS.md",
     "bench": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" node src/scopie.bench.js"
   },
+  "engines": {
+    "node": ">=22"
+  },
   "author": "miniscruff",
   "repository": {
     "type": "git",
